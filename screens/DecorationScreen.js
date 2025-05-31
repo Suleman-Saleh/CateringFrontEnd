@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, TextInput, Button, StyleSheet, Alert,
-  ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity
+  KeyboardAvoidingView, Platform, TouchableOpacity, FlatList
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import DropDownPicker from 'react-native-dropdown-picker';
@@ -12,8 +12,6 @@ const DecorationScreen = () => {
 
   const { eventType, eventDateTime, eventLocation } = route.params;
 
-
-  // Dropdown states
   const [decorationOpen, setDecorationOpen] = useState(false);
   const [utensilsOpen, setUtensilsOpen] = useState(false);
   const [furnitureOpen, setFurnitureOpen] = useState(false);
@@ -66,7 +64,7 @@ const DecorationScreen = () => {
     }
 
     navigation.navigate('DetailOptions', {
-      eventType, 
+      eventType,
       eventDateTime,
       eventLocation,
       decoration,
@@ -76,73 +74,82 @@ const DecorationScreen = () => {
     });
   };
 
+  const renderContent = () => (
+    <View style={styles.container}>
+      {/* <TouchableOpacity onPress={() => navigation.goBack()}>
+        <Text style={styles.backButton}>← Back to Event Info</Text>
+      </TouchableOpacity> */}
+
+      <Text style={styles.title}>Decoration and Other Options</Text>
+
+      <Text style={styles.label}>Decoration</Text>
+      <DropDownPicker
+        open={decorationOpen}
+        value={decoration}
+        items={decorationItems}
+        setOpen={setDecorationOpen}
+        setValue={setDecoration}
+        setItems={setDecorationItems}
+        placeholder="Select Decoration"
+        style={styles.dropdown}
+        dropDownContainerStyle={styles.dropdownContainer}
+        onOpen={onDecorationOpen}
+      />
+
+      <Text style={styles.label}>Utensils</Text>
+      <DropDownPicker
+        open={utensilsOpen}
+        value={utensils}
+        items={utensilsItems}
+        setOpen={setUtensilsOpen}
+        setValue={setUtensils}
+        setItems={setUtensilsItems}
+        placeholder="Select Utensils"
+        style={styles.dropdown}
+        dropDownContainerStyle={styles.dropdownContainer}
+        onOpen={onUtensilsOpen}
+      />
+
+      <Text style={styles.label}>Furniture</Text>
+      <DropDownPicker
+        open={furnitureOpen}
+        value={furniture}
+        items={furnitureItems}
+        setOpen={setFurnitureOpen}
+        setValue={setFurniture}
+        setItems={setFurnitureItems}
+        placeholder="Select Furniture"
+        style={styles.dropdown}
+        dropDownContainerStyle={styles.dropdownContainer}
+        onOpen={onFurnitureOpen}
+      />
+
+      <Text style={styles.label}>Additional Details (e.g., Spoon Types, Table Types)</Text>
+      <TextInput
+        style={[styles.input, { height: 80 }]}
+        placeholder="Specify any special details here"
+        multiline
+        value={additionalDetails}
+        onChangeText={setAdditionalDetails}
+      />
+
+      <View style={styles.buttonContainer}>
+        <Button title="Next: Detail Options" onPress={handleNext} />
+      </View>
+    </View>
+  );
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.flex}
     >
-      <ScrollView contentContainerStyle={styles.container}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backButton}>← Back to Event Info</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.title}>Decoration and Other Options</Text>
-
-        <Text style={styles.label}>Decoration</Text>
-        <DropDownPicker
-          open={decorationOpen}
-          value={decoration}
-          items={decorationItems}
-          setOpen={setDecorationOpen}
-          setValue={setDecoration}
-          setItems={setDecorationItems}
-          placeholder="Select Decoration"
-          style={styles.dropdown}
-          dropDownContainerStyle={styles.dropdownContainer}
-          onOpen={onDecorationOpen}
-        />
-
-        <Text style={styles.label}>Utensils</Text>
-        <DropDownPicker
-          open={utensilsOpen}
-          value={utensils}
-          items={utensilsItems}
-          setOpen={setUtensilsOpen}
-          setValue={setUtensils}
-          setItems={setUtensilsItems}
-          placeholder="Select Utensils"
-          style={styles.dropdown}
-          dropDownContainerStyle={styles.dropdownContainer}
-          onOpen={onUtensilsOpen}
-        />
-
-        <Text style={styles.label}>Furniture</Text>
-        <DropDownPicker
-          open={furnitureOpen}
-          value={furniture}
-          items={furnitureItems}
-          setOpen={setFurnitureOpen}
-          setValue={setFurniture}
-          setItems={setFurnitureItems}
-          placeholder="Select Furniture"
-          style={styles.dropdown}
-          dropDownContainerStyle={styles.dropdownContainer}
-          onOpen={onFurnitureOpen}
-        />
-
-        <Text style={styles.label}>Additional Details (e.g., Spoon Types, Table Types)</Text>
-        <TextInput
-          style={[styles.input, { height: 80 }]}
-          placeholder="Specify any special details here"
-          multiline
-          value={additionalDetails}
-          onChangeText={setAdditionalDetails}
-        />
-
-        <View style={styles.buttonContainer}>
-          <Button title="Next: Detail Options" onPress={handleNext} />
-        </View>
-      </ScrollView>
+      <FlatList
+        data={[]}
+        renderItem={null}
+        ListHeaderComponent={renderContent}
+        keyboardShouldPersistTaps="handled"
+      />
     </KeyboardAvoidingView>
   );
 };
@@ -152,7 +159,6 @@ export default DecorationScreen;
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: {
-    flexGrow: 1,
     padding: 20,
     backgroundColor: '#fff',
   },

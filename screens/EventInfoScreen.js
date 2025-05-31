@@ -6,25 +6,26 @@ import React, { useEffect, useState, useLayoutEffect } from 'react';
 import {
   Alert,
   Button,
+  FlatList,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
-  View
+  View,
 } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import MapView, { MapPressEvent, Marker } from 'react-native-maps';
 
 const EventInfoScreen = () => {
   const navigation = useNavigation();
+
   const [eventType, setEventType] = useState('');
   const [openDropdown, setOpenDropdown] = useState(false);
   const [eventTypes] = useState([
     { label: 'Birthday', value: 'Birthday' },
     { label: 'Wedding', value: 'Wedding' },
     { label: 'Corporate', value: 'Corporate' },
-    { label: 'Other', value: 'Other' }
+    { label: 'Other', value: 'Other' },
   ]);
 
   const [date, setDate] = useState(new Date());
@@ -40,10 +41,9 @@ const EventInfoScreen = () => {
         <Button
           title="Logout"
           onPress={() => {
-            // TODO: Add logout logic here
             navigation.reset({
               index: 0,
-              routes: [{ name: 'Login' }], // adjust to your login screen name
+              routes: [{ name: 'Login' }],
             });
           }}
           color="red"
@@ -87,12 +87,12 @@ const EventInfoScreen = () => {
     });
   };
 
-  return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Event Details</Text>
+  const renderContent = () => (
+    <View style={styles.content}>
+      <Text style={styles.title}>Event Details</Text>
 
-        <Text style={styles.label}>Event Type</Text>
+      <Text style={styles.label}>Event Type</Text>
+      <View style={{ zIndex: 1000 }}>
         <DropDownPicker
           open={openDropdown}
           value={eventType}
@@ -103,62 +103,65 @@ const EventInfoScreen = () => {
           placeholder="Select an event type"
           style={styles.dropdown}
           dropDownContainerStyle={styles.dropdownContainer}
-          zIndex={5000}
+          zIndex={1000}
         />
+      </View>
 
-        <Text style={styles.label}>Event Date</Text>
-        <Button title={moment(date).format('YYYY-MM-DD')} onPress={() => setShowDatePicker(true)} />
+      <Text style={styles.label}>Event Date</Text>
+      <Button title={moment(date).format('YYYY-MM-DD')} onPress={() => setShowDatePicker(true)} />
+      {showDatePicker && (
+        <DateTimePicker
+          value={date}
+          mode="date"
+          display="default"
+          onChange={(event, selectedDate) => {
+            setShowDatePicker(false);
+            if (selectedDate) setDate(selectedDate);
+          }}
+        />
+      )}
 
-        {showDatePicker && (
-          <DateTimePicker
-            value={date}
-            mode="date"
-            display="default"
-            onChange={(event, selectedDate) => {
-              setShowDatePicker(false);
-              if (selectedDate) setDate(selectedDate);
-            }}
-          />
-        )}
+      <Text style={styles.label}>Event Time</Text>
+      <Button title={moment(date).format('HH:mm')} onPress={() => setShowTimePicker(true)} />
+      {showTimePicker && (
+        <DateTimePicker
+          value={date}
+          mode="time"
+          display="default"
+          is24Hour={true}
+          onChange={(event, selectedTime) => {
+            setShowTimePicker(false);
+            if (selectedTime) {
+              const newDate = new Date(date);
+              newDate.setHours(selectedTime.getHours());
+              newDate.setMinutes(selectedTime.getMinutes());
+              setDate(newDate);
+            }
+          }}
+        />
+      )}
 
-        <Text style={styles.label}>Event Time</Text>
-        <Button title={moment(date).format('HH:mm')} onPress={() => setShowTimePicker(true)} />
+      <Text style={styles.label}>Select Event Location</Text>
+      {mapRegion && (
+        <MapView style={styles.map} region={mapRegion} onPress={handleMapPress}>
+          {selectedLocation && <Marker coordinate={selectedLocation} />}
+        </MapView>
+      )}
 
-        {showTimePicker && (
-          <DateTimePicker
-            value={date}
-            mode="time"
-            display="default"
-            is24Hour={true}
-            onChange={(event, selectedTime) => {
-              setShowTimePicker(false);
-              if (selectedTime) {
-                const newDate = new Date(date);
-                newDate.setHours(selectedTime.getHours());
-                newDate.setMinutes(selectedTime.getMinutes());
-                setDate(newDate);
-              }
-            }}
-          />
-        )}
+      <View style={styles.buttonContainer}>
+        <Button title="Next: Decoration" onPress={handleNext} />
+      </View>
+    </View>
+  );
 
-        <Text style={styles.label}>Select Event Location</Text>
-        {mapRegion && (
-          <MapView
-            style={styles.map}
-            region={mapRegion}
-            onPress={handleMapPress}
-          >
-            {selectedLocation && (
-              <Marker coordinate={selectedLocation} />
-            )}
-          </MapView>
-        )}
-
-        <View style={styles.buttonContainer}>
-          <Button title="Next: Decoration" onPress={handleNext} />
-        </View>
-      </ScrollView>
+  return (
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
+      <FlatList
+        data={[]}
+        renderItem={null}
+        ListHeaderComponent={renderContent}
+        keyboardShouldPersistTaps="handled"
+      />
     </KeyboardAvoidingView>
   );
 };
@@ -169,8 +172,7 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  container: {
-    flexGrow: 1,
+  content: {
     padding: 20,
     backgroundColor: '#fff',
     zIndex: 1,
@@ -188,13 +190,15 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   dropdown: {
-    marginBottom: 10,
     backgroundColor: '#f9f9f9',
     borderColor: '#aaa',
+    marginBottom: 10,
+    zIndex: 1000,
   },
   dropdownContainer: {
     backgroundColor: '#f9f9f9',
     borderColor: '#aaa',
+    zIndex: 1000,
   },
   map: {
     width: '100%',

@@ -1,12 +1,14 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
-    Button,
-    KeyboardAvoidingView, Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View
+  Button,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
 } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 
@@ -19,7 +21,6 @@ const DetailOptionsScreen = () => {
     decoration, utensils, furniture,
   } = route.params;
 
-  // Dropdown states
   const [dropdowns, setDropdowns] = useState({
     spoonType: null,
     tableType: null,
@@ -75,62 +76,89 @@ const DetailOptionsScreen = () => {
     ],
   };
 
+  const dropdownKeys = [
+    'spoonType',
+    'tableType',
+    'lighting',
+    'soundSystem',
+    'stage',
+    'photography',
+    'drinks',
+  ];
+
   const handleConfirm = () => {
-  const values = Object.values(dropdowns);
-  if (values.some(val => !val)) {
-    alert('Please fill out all dropdowns before proceeding.');
-    return;
-  }
+    const values = Object.values(dropdowns);
+    if (values.some(val => !val)) {
+      alert('Please fill out all dropdowns before proceeding.');
+      return;
+    }
 
-  // Navigate to the Summary screen instead of Payment
-  navigation.navigate('Summary', {
-    ...route.params,
-    ...dropdowns,
-  });
-};
+    navigation.navigate('Summary', {
+      ...route.params,
+      ...dropdowns,
+    });
+  };
 
-  const renderDropdown = (label, key, zIndex) => (
-    <>
-      <Text style={styles.label}>{label}</Text>
-      <DropDownPicker
-        open={openDropdown === key}
-        value={dropdowns[key]}
-        items={dropdownOptions[key]}
-        setOpen={() => setOpenDropdown(openDropdown === key ? null : key)}
-        setValue={(cb) => setDropdowns(prev => ({ ...prev, [key]: cb(prev[key]) }))}
-        placeholder={`Select ${label}`}
-        style={styles.dropdown}
-        dropDownContainerStyle={{ zIndex }}
-        zIndex={zIndex}
-      />
-    </>
-  );
+  const renderDropdownItem = ({ item, index }) => {
+    const key = item;
+    const label = key
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, str => str.toUpperCase());
+
+    return (
+      <View style={{ zIndex: 1000 - index * 100 }}>
+        <Text style={styles.label}>{label}</Text>
+        <DropDownPicker
+          open={openDropdown === key}
+          value={dropdowns[key]}
+          items={dropdownOptions[key]}
+          setOpen={() => setOpenDropdown(openDropdown === key ? null : key)}
+          setValue={(cb) =>
+            setDropdowns((prev) => ({ ...prev, [key]: cb(prev[key]) }))
+          }
+          placeholder={`Select ${label}`}
+          style={styles.dropdown}
+          dropDownContainerStyle={styles.dropdownContainer}
+        />
+      </View>
+    );
+  };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Detail Options</Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={styles.flex}
+    >
+      <FlatList
+        ListHeaderComponent={
+          <View style={styles.container}>
+            {/* <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Text style={styles.backButton}>← Back to Decoration</Text>
+            </TouchableOpacity> */}
 
-        <Text style={styles.info}>Event Type: {eventType}</Text>
-        <Text style={styles.info}>Date & Time: {eventDateTime}</Text>
-        <Text style={styles.info}>Location: Lat {eventLocation?.latitude}, Lng {eventLocation?.longitude}</Text>
-        <Text style={styles.info}>Decoration: {decoration}</Text>
-        <Text style={styles.info}>Utensils: {utensils}</Text>
-        <Text style={styles.info}>Furniture: {furniture}</Text>
+            <Text style={styles.title}>Detail Options</Text>
 
-        {/* Render dropdowns */}
-        {renderDropdown('Spoon Type', 'spoonType', 1000)}
-        {renderDropdown('Table Type', 'tableType', 900)}
-        {renderDropdown('Lighting', 'lighting', 800)}
-        {renderDropdown('Sound System', 'soundSystem', 700)}
-        {renderDropdown('Stage Setup', 'stage', 600)}
-        {renderDropdown('Photography', 'photography', 500)}
-        {renderDropdown('Drinks & Refreshments', 'drinks', 400)}
-
-        <View style={styles.buttonContainer}>
-          <Button title="Review Summary" onPress={handleConfirm} />
-        </View>
-      </ScrollView>
+            <Text style={styles.info}>Event Type: {eventType}</Text>
+            <Text style={styles.info}>Date & Time: {eventDateTime}</Text>
+            <Text style={styles.info}>
+              Location: Lat {eventLocation?.latitude}, Lng {eventLocation?.longitude}
+            </Text>
+            <Text style={styles.info}>Decoration: {decoration}</Text>
+            <Text style={styles.info}>Utensils: {utensils}</Text>
+            <Text style={styles.info}>Furniture: {furniture}</Text>
+          </View>
+        }
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
+        data={dropdownKeys}
+        keyExtractor={(item) => item}
+        renderItem={renderDropdownItem}
+        keyboardShouldPersistTaps="handled"
+        ListFooterComponent={
+          <View style={styles.buttonContainer}>
+            <Button title="Review Summary" onPress={handleConfirm} />
+          </View>
+        }
+      />
     </KeyboardAvoidingView>
   );
 };
@@ -140,10 +168,13 @@ export default DetailOptionsScreen;
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: {
-    flexGrow: 1,
-    padding: 20,
     backgroundColor: '#fff',
-    zIndex: 1000,
+    paddingTop: 20,
+  },
+  backButton: {
+    color: '#007AFF',
+    fontSize: 16,
+    marginBottom: 10,
   },
   title: {
     fontSize: 24,
@@ -165,9 +196,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#f2f2f2',
     borderColor: '#ccc',
     marginTop: 6,
-    zIndex: 1000,
+  },
+  dropdownContainer: {
+    borderColor: '#ccc',
+    marginBottom: 10,
   },
   buttonContainer: {
     marginTop: 30,
+    marginBottom: 40,
   },
 });
