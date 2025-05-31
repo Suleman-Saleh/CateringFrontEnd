@@ -13,5 +13,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-  ]
+, "screens/BookingConfirmationScreen.js", "screens/DecorationScreen.js", "screens/DetailOptionScreen.js", "screens/EventInfoScreen.js", "screens/LoginScreen.js", "screens/PaymentScreen.js", "screens/RegisterScreen.js", "screens/SummaryScreen.js"  ]
 }
