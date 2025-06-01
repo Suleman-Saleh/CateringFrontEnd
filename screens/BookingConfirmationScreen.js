@@ -1,88 +1,71 @@
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Button, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Button, FlatList, Image, StyleSheet, Text, View } from 'react-native';
+import { useBooking } from './BookingContextScreen'; // adjust path
 
 const BookingConfirmationScreen = () => {
+  const { booking } = useBooking();
   const navigation = useNavigation();
-  const route = useRoute();
 
-  const {
-    eventType,
-    eventDateTime,
-    eventLocation,
-    decoration,
-    utensils,
-    furniture,
-    spoonType,
-    tableType,
-    lighting,
-    soundSystem,
-    stage,
-    photography,
-    drinks,
-    paymentInfo,
-  } = route.params;
+  const renderCartItem = ({ item }) => {
+    const price = parseFloat(item.price);
+    const total = price * item.quantity;
 
-  const handleBackToHome = () => {
-    navigation.popToTop(); // or navigation.navigate('Home') if you have a home screen
+    return (
+      <View style={styles.cartItem}>
+        <Image source={{ uri: item.image }} style={styles.itemImage} />
+        <View style={{ flex: 1, marginLeft: 15 }}>
+          <Text style={styles.itemName}>{item.name}</Text>
+          <Text>Price: ${!isNaN(price) ? price.toFixed(2) : '0.00'}</Text>
+          <Text>Quantity: {item.quantity}</Text>
+          <Text style={styles.itemTotal}>Total: ${!isNaN(total) ? total.toFixed(2) : '0.00'}</Text>
+        </View>
+      </View>
+    );
+  };
+
+  const grandTotal = booking.cartItems.reduce((sum, item) => {
+    const price = parseFloat(item.price);
+    return sum + (isNaN(price) ? 0 : price * item.quantity);
+  }, 0);
+
+  const handleProceedToPayment = () => {
+    navigation.navigate('PaymentScreen'); // Ensure this route name matches your stack
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>🎉 Booking Confirmed!</Text>
-      <Text style={styles.subtitle}>Your event has been successfully booked.</Text>
+    <View style={styles.container}>
+      <Text style={styles.header}>Booking Confirmation</Text>
 
-      <Text style={styles.sectionTitle}>Event Summary</Text>
-
-      <View style={styles.detailBox}>
-        <Text style={styles.label}>Event Type:</Text>
-        <Text>{eventType}</Text>
-
-        <Text style={styles.label}>Date & Time:</Text>
-        <Text>{eventDateTime}</Text>
-
-        <Text style={styles.label}>Location:</Text>
-        <Text>Lat: {eventLocation?.latitude}, Lng: {eventLocation?.longitude}</Text>
-
-        <Text style={styles.label}>Decoration:</Text>
-        <Text>{decoration}</Text>
-
-        <Text style={styles.label}>Utensils:</Text>
-        <Text>{utensils}</Text>
-
-        <Text style={styles.label}>Furniture:</Text>
-        <Text>{furniture}</Text>
-
-        <Text style={styles.label}>Spoon Type:</Text>
-        <Text>{spoonType}</Text>
-
-        <Text style={styles.label}>Table Type:</Text>
-        <Text>{tableType}</Text>
-
-        <Text style={styles.label}>Lighting:</Text>
-        <Text>{lighting}</Text>
-
-        <Text style={styles.label}>Sound System:</Text>
-        <Text>{soundSystem}</Text>
-
-        <Text style={styles.label}>Stage Setup:</Text>
-        <Text>{stage}</Text>
-
-        <Text style={styles.label}>Photography:</Text>
-        <Text>{photography}</Text>
-
-        <Text style={styles.label}>Drinks:</Text>
-        <Text>{drinks}</Text>
-
-        <Text style={styles.label}>Payment Info:</Text>
-        <Text>Card ending in **** {paymentInfo?.last4}</Text>
-        <Text>Card Holder: {paymentInfo?.cardHolder}</Text>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Event Details</Text>
+        <Text>Type: {booking.eventType || 'N/A'}</Text>
+        <Text>Date & Time: {booking.eventDateTime || 'N/A'}</Text>
+        <Text>Location: {booking.eventLocation || 'N/A'}</Text>
       </View>
 
-      <View style={styles.buttonContainer}>
-        <Button title="Back to Home" onPress={handleBackToHome} />
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Cart Items</Text>
+        {booking.cartItems.length === 0 ? (
+          <Text>No items added to cart.</Text>
+        ) : (
+          <FlatList
+            data={booking.cartItems}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderCartItem}
+            style={{ maxHeight: 300 }}
+          />
+        )}
       </View>
-    </ScrollView>
+
+      <View style={styles.section}>
+        <Text style={styles.grandTotal}>Grand Total: ${grandTotal.toFixed(2)}</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Button title="Proceed to Payment" onPress={handleProceedToPayment} />
+      </View>
+    </View>
   );
 };
 
@@ -90,48 +73,51 @@ export default BookingConfirmationScreen;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    backgroundColor: '#fefefe',
-    flexGrow: 1,
+    flex: 1,
+    padding: 25,
+    backgroundColor: '#fff',
   },
-  title: {
+  header: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#2e7d32',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    color: '#444',
+    fontWeight: '700',
     marginBottom: 20,
+    textAlign: 'center',
+    color: '#222',
+  },
+  section: {
+    marginBottom: 25,
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: '700',
     marginBottom: 10,
-    borderBottomWidth: 1,
-    paddingBottom: 4,
-    borderColor: '#ccc',
   },
-  detailBox: {
-    backgroundColor: '#fff',
-    padding: 15,
+  cartItem: {
+    flexDirection: 'row',
+    marginBottom: 15,
+    backgroundColor: '#f2f2f2',
+    padding: 10,
     borderRadius: 10,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    marginBottom: 30,
   },
-  label: {
-    fontWeight: 'bold',
-    marginTop: 10,
-    color: '#333',
+  itemImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 8,
+    backgroundColor: '#ddd',
   },
-  buttonContainer: {
-    marginTop: 10,
-    alignItems: 'center',
+  itemName: {
+    fontWeight: '700',
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  itemTotal: {
+    marginTop: 5,
+    fontWeight: '600',
+    color: '#007AFF',
+  },
+  grandTotal: {
+    fontSize: 22,
+    fontWeight: '700',
+    textAlign: 'right',
   },
 });

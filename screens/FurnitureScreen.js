@@ -1,20 +1,15 @@
+
+import React, { useState } from 'react';
 import {
-    createDrawerNavigator,
-    DrawerContentScrollView,
-    DrawerItem,
-} from '@react-navigation/drawer';
-import {
-    FlatList,
-    Image,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
-const Drawer = createDrawerNavigator();
-
-// Furniture categories and items for events
 const furnitureItems = {
   Chairs: [
     { id: 'ch1', name: 'Folding Chair', material: 'Metal', price: '$10', image: 'https://images.unsplash.com/photo-1519710164239-da123dc03ef4' },
@@ -36,113 +31,150 @@ const furnitureItems = {
   ],
 };
 
-const ItemsListScreen = ({ route, navigation }) => {
-  const { category } = route.params;
-  const data = furnitureItems[category] || [];
+export default function FurnitureScreen({ navigation }) {
+  const [selectedCategory, setSelectedCategory] = useState('Chairs');
+  const categories = Object.keys(furnitureItems);
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => navigation.navigate('ItemCartScreen', { item })}
-    >
-      <Image source={{ uri: item.image }} style={styles.cardImage} />
-      <Text style={styles.cardName}>{item.name}</Text>
-      <Text style={styles.cardStyle}>{item.material}</Text>
-      <Text style={styles.cardPrice}>{item.price}</Text>
-    </TouchableOpacity>
-  );
+  const { width } = Dimensions.get('window');
+  const cardWidth = (width - 48) / 2; // 16px padding + 16px between cards
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{category}</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Text style={styles.backButtonText}>← Back</Text>
+      </TouchableOpacity>
+      <Text style={styles.title}>Select a Category</Text>
+      <View style={styles.categoryContainer}>
+        {categories.map(cat => (
+          <TouchableOpacity
+            key={cat}
+            style={[
+              styles.categoryButton,
+              selectedCategory === cat && styles.categoryButtonSelected,
+            ]}
+            onPress={() => setSelectedCategory(cat)}
+          >
+            <Text
+              style={[
+                styles.categoryText,
+                selectedCategory === cat && styles.categoryTextSelected,
+              ]}
+            >
+              {cat}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       <FlatList
-        data={data}
-        keyExtractor={(item) => item.id}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        renderItem={renderItem}
-        contentContainerStyle={styles.cardList}
+        data={furnitureItems[selectedCategory]}
+        keyExtractor={item => item.id}
+        numColumns={2}
+        contentContainerStyle={styles.list}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={[styles.itemCard, { width: cardWidth }]}
+            onPress={() => navigation.navigate('ItemCartScreen', { item })}
+          >
+            <Image
+              source={{ uri: item.image }}
+              style={[styles.image, { width: cardWidth - 20, height: cardWidth - 20 }]}
+            />
+            <Text style={styles.itemName}>{item.name}</Text>
+            <Text style={styles.itemStyle}>{item.material}</Text>
+            <Text style={styles.itemPrice}>{item.price}</Text>
+          </TouchableOpacity>
+        )}
       />
     </View>
-  );
-};
-
-function CustomDrawerContent(props) {
-  const categories = Object.keys(furnitureItems);
-  return (
-    <DrawerContentScrollView {...props}>
-      {categories.map((cat) => (
-        <DrawerItem
-          key={cat}
-          label={cat}
-          onPress={() => props.navigation.navigate('ItemsList', { category: cat })}
-        />
-      ))}
-    </DrawerContentScrollView>
-  );
-}
-
-export default function FurnitureScreen() {
-  return (
-    <Drawer.Navigator
-      initialRouteName="ItemsList"
-      drawerContent={(props) => <CustomDrawerContent {...props} />}
-    >
-      <Drawer.Screen
-        name="ItemsList"
-        component={ItemsListScreen}
-        initialParams={{ category: 'Chairs' }}
-        options={{ headerTitle: 'Event Furniture' }}
-      />
-    </Drawer.Navigator>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingVertical: 20,
     backgroundColor: '#fff',
+    padding: 16,
+    paddingTop: 40,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    paddingHorizontal: 20,
-    marginBottom: 15,
-  },
-  cardList: {
-    paddingLeft: 20,
-  },
-  card: {
-    backgroundColor: '#f8f8f8',
-    borderRadius: 10,
-    width: 160,
-    marginRight: 15,
-    padding: 10,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 3,
-  },
-  cardImage: {
-    width: 140,
-    height: 100,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  cardName: {
-    fontSize: 16,
+    fontSize: 22,
     fontWeight: 'bold',
     textAlign: 'center',
+    marginBottom: 16,
   },
-  cardStyle: {
-    fontSize: 14,
-    color: 'gray',
-    marginVertical: 2,
+  categoryContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 16,
   },
-  cardPrice: {
+  categoryButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#777',
+    backgroundColor: '#f0f0f0',
+  },
+  categoryButtonSelected: {
+    backgroundColor: '#007bff',
+    borderColor: '#007bff',
+  },
+  categoryText: {
     fontSize: 16,
-    color: '#333',
+    color: '#444',
   },
+  categoryTextSelected: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  list: {
+    paddingBottom: 40,
+  },
+  itemCard: {
+    backgroundColor: '#fafafa',
+    margin: 8,
+    borderRadius: 10,
+    padding: 10,
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  image: {
+    borderRadius: 8,
+    marginBottom: 8,
+    resizeMode: 'cover',
+  },
+  itemName: {
+    fontWeight: '600',
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  itemStyle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 6,
+  },
+  itemPrice: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    color: '#007bff',
+  },
+  backButton: {
+  marginTop: 40,
+  marginLeft: 16,
+  marginBottom: 8,
+  padding: 8,
+  backgroundColor: '#eee',
+  borderRadius: 8,
+  alignSelf: 'flex-start',
+},
+backButtonText: {
+  fontSize: 16,
+  color: '#333',
+}
 });
+

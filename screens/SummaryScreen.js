@@ -1,60 +1,94 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Button } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { Button, FlatList, Image, StyleSheet, Text, View } from 'react-native';
+import { useBooking } from './BookingContextScreen'; // adjust path
 
-const SummaryScreen = () => {
-  const route = useRoute();
-  const navigation = useNavigation();
+const SummaryScreen = () => { 
+  const { booking } = useBooking(); 
+  const navigation = useNavigation(); 
 
-  const {
-    eventType,
-    eventDateTime,
-    eventLocation,
-    decoration,
-    utensils,
-    furniture,
-    additionalDetails,
-    spoonType,
-    tableType,
-    music,
-    lighting,
-    photography,
-  } = route.params;
+  const [bookingId, setBookingId] = useState('');
 
-  const handleProceedToPayment = () => {
-    navigation.navigate('Payment', {
-      // pass everything to PaymentScreen
-      ...route.params
-    });
+  useEffect(() => {
+    // Generate an 8-character uppercase alphanumeric booking ID
+    const id = Math.random().toString(36).substring(2, 10).toUpperCase();
+    setBookingId(id);
+  }, []);
+
+  const renderCartItem = ({ item }) => {
+    const price = parseFloat(item.price);
+    const total = price * item.quantity;
+
+    return (
+      <View style={styles.cartItem}>
+        <Image source={{ uri: item.image }} style={styles.itemImage} />
+        <View style={{ flex: 1, marginLeft: 15 }}>
+          <Text style={styles.itemName}>{item.name}</Text>
+          <Text>Price: ${!isNaN(price) ? price.toFixed(2) : '0.00'}</Text>
+          <Text>Quantity: {item.quantity}</Text>
+          <Text style={styles.itemTotal}>Total: ${!isNaN(total) ? total.toFixed(2) : '0.00'}</Text>
+        </View>
+      </View>
+    );
+  };
+
+  const grandTotal = booking.cartItems.reduce((sum, item) => {
+    const price = parseFloat(item.price);
+    return sum + (isNaN(price) ? 0 : price * item.quantity);
+  }, 0);
+
+  const handleFinish = () => {
+    // Navigate to Home or any other screen
+    navigation.navigate('Home'); // adjust route name as needed
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Booking Summary</Text>
+    <View style={styles.container}>
+      <Text style={styles.header}>Booking Summary</Text>
 
-      <Text style={styles.label}>Event Type: <Text style={styles.value}>{eventType}</Text></Text>
-      <Text style={styles.label}>Date & Time: <Text style={styles.value}>{eventDateTime}</Text></Text>
-      <Text style={styles.label}>Location:</Text>
-      <Text style={styles.value}>
-        Latitude: {eventLocation.latitude.toFixed(4)}, Longitude: {eventLocation.longitude.toFixed(4)}
-      </Text>
-
-      <Text style={styles.label}>Decoration: <Text style={styles.value}>{decoration}</Text></Text>
-      <Text style={styles.label}>Utensils: <Text style={styles.value}>{utensils}</Text></Text>
-      <Text style={styles.label}>Furniture: <Text style={styles.value}>{furniture}</Text></Text>
-      <Text style={styles.label}>Spoon Type: <Text style={styles.value}>{spoonType}</Text></Text>
-      <Text style={styles.label}>Table Type: <Text style={styles.value}>{tableType}</Text></Text>
-      <Text style={styles.label}>Music: <Text style={styles.value}>{music}</Text></Text>
-      <Text style={styles.label}>Lighting: <Text style={styles.value}>{lighting}</Text></Text>
-      <Text style={styles.label}>Photography: <Text style={styles.value}>{photography}</Text></Text>
-
-      <Text style={styles.label}>Additional Notes:</Text>
-      <Text style={styles.value}>{additionalDetails || 'None'}</Text>
-
-      <View style={styles.buttonContainer}>
-        <Button title="Proceed to Payment" onPress={handleProceedToPayment} />
+      <View style={styles.confirmationBox}>
+        <Text style={styles.confirmationText}>
+          🎉 Your order has been placed successfully!
+        </Text>
+        <Text style={styles.bookingIdText}>
+          Booking ID: <Text style={styles.bookingId}>{bookingId}</Text>
+        </Text>
       </View>
-    </ScrollView>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Event Details</Text>
+        <Text>Type: {booking.eventType || 'N/A'}</Text>
+        <Text>Date & Time: {booking.eventDateTime || 'N/A'}</Text>
+        <Text>
+          Location:{' '}
+          {booking.eventLocation
+            ? `Latitude: ${booking.eventLocation.latitude.toFixed(4)}, Longitude: ${booking.eventLocation.longitude.toFixed(4)}`
+            : 'N/A'}
+        </Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Cart Items</Text>
+        {booking.cartItems.length === 0 ? (
+          <Text>No items added to cart.</Text>
+        ) : (
+          <FlatList
+            data={booking.cartItems}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderCartItem}
+            style={{ maxHeight: 300 }}
+          />
+        )}
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.grandTotal}>Grand Total: ${grandTotal.toFixed(2)}</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Button title="Back to Home" onPress={handleFinish} />
+      </View>
+    </View>
   );
 };
 
@@ -62,25 +96,72 @@ export default SummaryScreen;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    flex: 1,
+    padding: 25,
     backgroundColor: '#fff',
   },
-  title: {
-    fontSize: 26,
-    fontWeight: 'bold',
+  header: {
+    fontSize: 28,
+    fontWeight: '700',
+    marginBottom: 20,
     textAlign: 'center',
-    marginBottom: 24,
+    color: '#222',
   },
-  label: {
-    fontSize: 16,
+  confirmationBox: {
+    backgroundColor: '#e0ffe0',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  confirmationText: {
+    fontSize: 18,
     fontWeight: '600',
-    marginTop: 10,
+    color: '#2e7d32',
+    marginBottom: 8,
   },
-  value: {
-    fontWeight: '400',
-    color: '#333',
+  bookingIdText: {
+    fontSize: 16,
+    fontWeight: '500',
   },
-  buttonContainer: {
-    marginTop: 30,
+  bookingId: {
+    fontWeight: '700',
+    color: '#388e3c',
+  },
+  section: {
+    marginBottom: 25,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 10,
+  },
+  cartItem: {
+    flexDirection: 'row',
+    marginBottom: 15,
+    backgroundColor: '#f2f2f2',
+    padding: 10,
+    borderRadius: 10,
+  },
+  itemImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 8,
+    backgroundColor: '#ddd',
+  },
+  itemName: {
+    fontWeight: '700',
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  itemTotal: {
+    marginTop: 5,
+    fontWeight: '600',
+    color: '#007AFF',
+  },
+  grandTotal: {
+    fontSize: 22,
+    fontWeight: '700',
+    textAlign: 'right',
   },
 });

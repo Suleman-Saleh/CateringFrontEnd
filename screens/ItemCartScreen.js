@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useBooking } from './BookingContextScreen'; // adjust import path
 
-export default function ItemCartScreen({ route }) {
+export default function ItemCartScreen({ route, navigation }) {
   const { item } = route.params;
   const [quantity, setQuantity] = useState('1');
+
+  const { addToCart } = useBooking();
 
   const qty = Math.max(0, parseInt(quantity) || 0);
   const price = Number(item.price) || 0;
@@ -14,7 +17,9 @@ export default function ItemCartScreen({ route }) {
       Alert.alert('Invalid Quantity', 'Please enter a quantity greater than zero.');
       return;
     }
+    addToCart(item, qty);
     Alert.alert('Added to Cart', `${qty} x ${item.name} added to cart!\nTotal: $${totalPrice}`);
+    navigation.goBack(); // optionally go back after adding
   };
 
   return (
