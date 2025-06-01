@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Button } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import React from 'react';
+import { Button, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 const BookingConfirmationScreen = () => {
   const navigation = useNavigation();

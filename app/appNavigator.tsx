@@ -1,25 +1,34 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import React from 'react';
 
-import LoginScreen from '../screens/LoginScreen';
-import RegisterScreen from '../screens/RegisterScreen';
-import EventInfoScreen from '../screens/EventInfoScreen';
+import BookingConfirmationScreen from '../screens/BookingConfirmationScreen';
 import DecorationScreen from '../screens/DecorationScreen';
 import DetailOptionScreen from '../screens/DetailOptionScreen';
-import SummaryScreen from '../screens/SummaryScreen';
+//import EventInfoScreen from '../screens/EventInfoScreen';
+import FurnitureScreen from '../screens/FurnitureScreen';
+import ItemCartScreen from '../screens/ItemCartScreen';
+import LoginScreen from '../screens/LoginScreen';
+import OptionsScreen from '../screens/OptionsScreen';
 import PaymentScreen from '../screens/PaymentScreen';
-import BookingConfirmationScreen from '../screens/BookingConfirmationScreen';
+import RegisterScreen from '../screens/RegisterScreen';
+import SummaryScreen from '../screens/SummaryScreen';
+import UtensilScreen from '../screens/UtensilScreen';
 // import AdminDashboardScreen from './screens/AdminDashboardScreen';
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => (
-    <Stack.Navigator initialRouteName="EventInfo" screenOptions={{ headerShown: true }}>
+    <Stack.Navigator initialRouteName="OptionsScreen" screenOptions={{ headerShown: true }}>
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
-      <Stack.Screen name="EventInfo" component={EventInfoScreen} />
-      <Stack.Screen name="Decoration" component={DecorationScreen} />
+     
+       <Stack.Screen name="OptionsScreen" component={OptionsScreen} />
+      <Stack.Screen name="DecorationScreen"  component={DecorationScreen}  options={{ headerShown: false }}/>
+      <Stack.Screen name="ItemCartScreen" component={ItemCartScreen} />
+
+      <Stack.Screen name="UtensilScreen" component={UtensilScreen} />
+      <Stack.Screen name="FurnitureScreen" component={FurnitureScreen} />
+      {/* <Stack.Screen name="EventInfo" component={EventInfoScreen} /> */}
       <Stack.Screen name="DetailOptions" component={DetailOptionScreen} />
       <Stack.Screen name="Summary" component={SummaryScreen} />
       <Stack.Screen name="Payment" component={PaymentScreen} />

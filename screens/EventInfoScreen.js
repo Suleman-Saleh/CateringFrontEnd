@@ -1,8 +1,7 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
-import * as Location from 'expo-location';
 import moment from 'moment';
-import React, { useEffect, useState, useLayoutEffect } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import {
   Alert,
   Button,
@@ -14,7 +13,7 @@ import {
   View,
 } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
-import MapView, { MapPressEvent, Marker } from 'react-native-maps';
+//import MapView, { Marker } from 'react-native-maps';
 
 const EventInfoScreen = () => {
   const navigation = useNavigation();
@@ -32,8 +31,8 @@ const EventInfoScreen = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
-  const [selectedLocation, setSelectedLocation] = useState(null);
-  const [mapRegion, setMapRegion] = useState(null);
+ // const [selectedLocation, setSelectedLocation] = useState(null);
+ // const [mapRegion, setMapRegion] = useState(null);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -52,7 +51,7 @@ const EventInfoScreen = () => {
     });
   }, [navigation]);
 
-  useEffect(() => {
+ /* useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -70,12 +69,12 @@ const EventInfoScreen = () => {
     })();
   }, []);
 
-  const handleMapPress = (event: MapPressEvent) => {
+  const handleMapPress = (event) => {
     setSelectedLocation(event.nativeEvent.coordinate);
-  };
+  };*/
 
   const handleNext = () => {
-    if (!eventType || !selectedLocation) {
+    if (!eventType/* || !selectedLocation*/) {
       Alert.alert('Missing Fields', 'Please complete all fields and select a location.');
       return;
     }
@@ -83,7 +82,7 @@ const EventInfoScreen = () => {
     navigation.navigate('Decoration', {
       eventType,
       eventDateTime: date.toISOString(),
-      eventLocation: selectedLocation,
+      //eventLocation: selectedLocation,
     });
   };
 
@@ -141,12 +140,8 @@ const EventInfoScreen = () => {
         />
       )}
 
-      <Text style={styles.label}>Select Event Location</Text>
-      {mapRegion && (
-        <MapView style={styles.map} region={mapRegion} onPress={handleMapPress}>
-          {selectedLocation && <Marker coordinate={selectedLocation} />}
-        </MapView>
-      )}
+     <Text style={styles.label}>Select Event Location</Text>
+     
 
       <View style={styles.buttonContainer}>
         <Button title="Next: Decoration" onPress={handleNext} />
@@ -210,3 +205,9 @@ const styles = StyleSheet.create({
     marginTop: 30,
   },
 });
+
+ /*{mapRegion && (
+        <MapView style={styles.map} region={mapRegion} onPress={handleMapPress}>
+          {selectedLocation && <Marker coordinate={selectedLocation} />}
+        </MapView>
+      )}*/
