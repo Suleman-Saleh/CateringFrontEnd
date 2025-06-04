@@ -5,6 +5,7 @@ const BookingContext = createContext();
 
 // Provider Component
 export const BookingProvider = ({ children }) => {
+  
   const [booking, setBooking] = useState({
     eventType: '',
     eventDateTime: '',

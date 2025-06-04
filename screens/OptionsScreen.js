@@ -1,129 +1,152 @@
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import {
+  LayoutAnimation,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  UIManager,
+  useColorScheme,
+  View,
+} from 'react-native';
+
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useBooking } from './BookingContextScreen';
+import DecorationSection from './DecorationScreen';
+import FurnitureScreen from './FurnitureScreen';
+import UtensilScreen from './UtensilScreen';
 
-const OptionsScreen = ({ navigation, route }) => {
-  const { eventType, eventDateTime, eventLocation } = route.params || {};
-  const { booking, updateBooking } = useBooking();
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
-  // Check if all three categories have been visited
-  const allVisited =
-    booking.visitedFurniture &&
-    booking.visitedUtensils &&
-    booking.visitedDecoration;
+export default function OptionsScreen({ navigation }) {
+  // Get visited flags and booking from context correctly
+  const [selectedTab, setSelectedTab] = useState('Decoration');
+const { booking } = useBooking();
 
-  const handleNavigate = (screenName, visitedKey) => {
-    updateBooking({ [visitedKey]: true });
-    navigation.navigate(screenName, { eventType, eventDateTime, eventLocation });
-  };
+const { visitedDecoration, visitedUtensils, visitedFurniture, cartItems } = booking;
+const canProceed =
+  visitedDecoration &&
+  visitedUtensils &&
+  visitedFurniture &&
+  cartItems.length > 0;
+
+
+  // Proceed only if all categories visited AND cart is not empty
+
+  const theme = useColorScheme();
+  const isDark = theme === 'dark';
+
+  const tabs = [
+    { key: 'Decoration', icon: 'balloon' },
+    { key: 'Utensils', icon: 'silverware-fork-knife' },
+    { key: 'Furniture', icon: 'sofa' },
+  ];
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Choose a Category</Text>
-
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[styles.categoryButton, styles.decorationButton]}
-          onPress={() => handleNavigate('DecorationScreen', 'visitedDecoration')}
-        >
-          <Text style={styles.buttonText}>
-            Decoration {booking.visitedDecoration ? '✓' : ''}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.categoryButton, styles.utensilsButton]}
-          onPress={() => handleNavigate('UtensilScreen', 'visitedUtensils')}
-        >
-          <Text style={styles.buttonText}>
-            Utensils {booking.visitedUtensils ? '✓' : ''}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.categoryButton, styles.furnitureButton]}
-          onPress={() => handleNavigate('FurnitureScreen', 'visitedFurniture')}
-        >
-          <Text style={styles.buttonText}>
-            Furniture {booking.visitedFurniture ? '✓' : ''}
-          </Text>
-        </TouchableOpacity>
+    <View style={[styles.container, { backgroundColor: isDark ? '#1e1e1e' : '#f5f5f5' }]}>
+      <View style={styles.tabsContainer}>
+        {tabs.map(({ key, icon }) => (
+          <TouchableOpacity
+            key={key}
+            style={[styles.tab, selectedTab === key && styles.activeTab]}
+            onPress={() => {
+              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+              setSelectedTab(key);
+            }}
+          >
+            <Icon
+              name={icon}
+              size={20}
+              color={selectedTab === key ? '#fff' : isDark ? '#ccc' : '#333'}
+              style={{ marginBottom: 4 }}
+            />
+            <Text
+              style={[
+                styles.tabText,
+                selectedTab === key && styles.activeTabText,
+                { color: isDark ? '#ccc' : '#333' },
+              ]}
+            >
+              {key}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
-      {allVisited && (
-  <TouchableOpacity
-    onPress={() => {
-      console.log('Navigating...');
-      navigation.navigate('BookingConfirmationScreen');
-    }}
-    style={{
-      backgroundColor: '#007AFF',
-      padding: 15,
-      borderRadius: 10,
-      alignItems: 'center',
-      marginTop: 40,
-      alignSelf: 'center',
-      width: '60%',
-    }}
-  >
-    <Text style={{ color: 'white', fontSize: 18, fontWeight: 'bold' }}>
-      Booking Confirmation
-    </Text>
-  </TouchableOpacity>
-)}
+      <Text style={[styles.progressText, { color: isDark ? '#aaa' : '#444' }]}>
+        {`Progress: ${
+          [visitedDecoration, visitedUtensils, visitedFurniture].filter(Boolean).length
+        }/3 completed`}
+      </Text>
 
+      <View style={styles.contentContainer}>
+        {selectedTab === 'Decoration' && <DecorationSection navigation={navigation} />}
+        {selectedTab === 'Utensils' && <UtensilScreen navigation={navigation} />}
+        {selectedTab === 'Furniture' && <FurnitureScreen navigation={navigation} />}
+      </View>
+
+      {canProceed && (
+        <TouchableOpacity
+          style={[styles.proceedButton, { backgroundColor: isDark ? '#3b82f6' : '#2e86de' }]}
+          onPress={() => navigation.navigate('BookingConfirmationScreen')}
+        >
+          <Text style={styles.proceedText}>Proceed to Payment</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
-};
-
-export default OptionsScreen;
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 30,
-    backgroundColor: '#f9f9f9',
-    justifyContent: 'center',
+    padding: 12,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 40,
-    color: '#333',
-    textAlign: 'center',
-  },
-  buttonContainer: {
-    gap: 20,
-  },
-  categoryButton: {
-    backgroundColor: '#fff',
-    paddingVertical: 25,
+  tabsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 12,
+    backgroundColor: '#e2e8f0',
     borderRadius: 12,
+    marginBottom: 8,
+  },
+  tab: {
     alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#d1d5db',
+    flex: 1,
+    marginHorizontal: 4,
   },
-  decorationButton: {
-    backgroundColor: '#FFB74D',
+  activeTab: {
+    backgroundColor: '#6366f1',
   },
-  utensilsButton: {
-    backgroundColor: '#4FC3F7',
+  tabText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
-  furnitureButton: {
-    backgroundColor: '#81C784',
-  },
-  buttonText: {
-    fontSize: 22,
+  activeTabText: {
     color: '#fff',
-    fontWeight: '700',
   },
-  proceedButtonContainer: {
-    marginTop: 40,
-    alignSelf: 'center',
-    width: '60%',
+  progressText: {
+    textAlign: 'center',
+    marginVertical: 10,
+    fontSize: 14,
+  },
+  contentContainer: {
+    flex: 1,
+  },
+  proceedButton: {
+    padding: 16,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  proceedText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
