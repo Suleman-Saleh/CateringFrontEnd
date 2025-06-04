@@ -51,7 +51,7 @@ const EventInfoScreen = () => {
   const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
   const [locationItems, setLocationItems] = useState(locationTypes);
 
-  const labels = ['Event Info', 'Decoration', 'Summary', 'Payment'];
+  const labels = ['Event Info', 'Services','Summary', 'Payment'];
   const icons = ['calendar', 'paint-brush', 'list-alt', 'credit-card'];
 
   const customStyles = {

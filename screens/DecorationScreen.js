@@ -308,165 +308,144 @@ const defaultItems = {
 
 export default function DecorationSection() {
   const { updateBooking } = useBooking();
-
   useEffect(() => {
-    // Mark Decoration as visited when this screen mounts
-    updateBooking({ visitedDecoration: true });
+    updateBooking({ visitedFurniture: true });
   }, []);
+
   const [selectedCategory, setSelectedCategory] = useState('Light');
   const categories = Object.keys(defaultItems);
   const navigation = useNavigation();
-
   const { width } = Dimensions.get('window');
-  const cardWidth = (width - 16 * 3) / 2;
+  const cardWidth = (width - 48) / 2;
 
- return (
-   <View style={styles.decorationContainer}>
-     {/* Category Tabs */}
-     <ScrollView
-       horizontal ={true}
-       showsHorizontalScrollIndicator={false}
-       contentContainerStyle={styles.categoryTabsContainer}
-     >
-       {categories.map((category) => (
-         <TouchableOpacity
-           key={category}
-           onPress={() => setSelectedCategory(category)}
-           style={[
-             styles.categoryButton,
-             selectedCategory === category && styles.selectedCategoryButton,
-           ]}
-         >
-           <Text
-             style={[
-               styles.categoryText,
-               selectedCategory === category && styles.selectedCategoryText,
-             ]}
-           >
-             {category}
-           </Text>
-         </TouchableOpacity>
-       ))}
-     </ScrollView>
- 
-     {/* Item List */}
-     <FlatList
-       data={defaultItems[selectedCategory]}
-       keyExtractor={(item) => item.id}
-       numColumns={2}
-       contentContainerStyle={styles.flatListContainer}
-       renderItem={({ item }) => (
-        <TouchableOpacity
-                    style={[styles.itemCard, { width: cardWidth }]}
-                    onPress={() => navigation.navigate('ItemCartScreen', { item })}
-                  >
-           <Image source={{ uri: item.image }} style={styles.cardImage} />
-           <Text style={styles.cardTitle}>{item.name}</Text>
-           <Text style={styles.cardSubtitle}>{item.style}</Text>
-           <Text style={styles.cardPrice}>{item.price}</Text>
-         </TouchableOpacity>
-       )}
-     />
-   </View>
- );
- }
- 
+  return (
+    <View style={styles.container}>
+      <View style={styles.categoryContainer}></View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.categoryScroll}
+      >
+        {categories.map((category) => (
+          <TouchableOpacity
+            key={category}
+            onPress={() => setSelectedCategory(category)}
+            style={[styles.categoryButton, selectedCategory === category && styles.categoryButtonActive]}
+          >
+            <Text style={[styles.categoryText, selectedCategory === category && styles.categoryTextActive]}>
+              {category}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+      <View style={styles.cardsContainer}>
+      <FlatList
+        data={defaultItems[selectedCategory]}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        contentContainerStyle={styles.listContainer}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={[styles.card, { width: cardWidth }]}
+            onPress={() => navigation.navigate('ItemCartScreen', { item })}
+          >
+            <Image source={{ uri: item.image }} style={styles.image} />
+            <Text style={styles.title}>{item.name}</Text>
+            <Text style={styles.subtitle}>{item.material}</Text>
+            <Text style={styles.price}>{item.price}</Text>
+          </TouchableOpacity>
+        )}
+      />
+    </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  decorationContainer: {
+  categoryContainer: {
+  paddingVertical: 1,
+  backgroundColor: '#ffffff',
+  paddingBottom: 3, // Reduced to fit more space for FlatList
+},
+
+cardsContainer: {
+  flex: 75,
+  paddingHorizontal: 1,
+},
+
+  container: {
     flex: 1,
-    backgroundColor: '#f9fafb', // soft off-white
-    paddingHorizontal: 16,
-    paddingTop: 5,
-    paddingBottom: 20,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 2,
+    paddingTop: 10,
   },
-
-  categoryTabsContainer: {
+  categoryScroll: {
     flexDirection: 'row',
-    paddingVertical: 1,
-    paddingHorizontal: 5,
-    marginBottom: 80,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    marginBottom: 8, // Reduced to fit more space for FlatList
   },
 
-  categoryButton: {
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 25,
-    backgroundColor: '#e0e7ff', // soft periwinkle
-    marginRight: 12,
-    maxWidth: 130,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#a0a7ff', // subtle shadow
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.35,
-    shadowRadius: 4,
-    elevation: 3,
-    overflow: 'hidden',
+  categoryButtonActive: {
+    backgroundColor: '#6A1B9A',
   },
+categoryButton: {
+  paddingHorizontal: 24, // increased from 20
+  paddingVertical: 14,   // increased from 10
+  backgroundColor: '#e5e7eb',
+  borderRadius: 30,      // increased from 25
+  marginRight: 12,       // slightly increased spacing
+  minWidth: 120, 
+  minHeight: 50,        // increased from 100
+  alignItems: 'center',
+},
+categoryText: {
+  fontSize: 16,          // increased from 14
+  fontWeight: '600',
+  color: '#1f2937',
+},
 
-  selectedCategoryButton: {
-    backgroundColor: '#4f46e5', // vibrant indigo
-    shadowColor: '#4f46e5',
-    shadowOpacity: 0.5,
-    elevation: 6,
-  },
-
-  categoryText: {
-    fontSize: 15,
-    color: '#3b4252',
-    fontWeight: '600',
-    textAlign: 'center',
-    flexShrink: 1,
-  },
-
-  selectedCategoryText: {
-    color: '#fff',
+  categoryTextActive: {
+    color: '#ffffff',
     fontWeight: '700',
   },
-
-  flatListContainer: {
-    paddingTop: 0,
-    paddingBottom: 40,
+  listContainer: {
+    paddingBottom: 30,
+    paddingTop: 4,
   },
-
   card: {
-    backgroundColor: '#fff',
-    margin: 10,
+    backgroundColor: '#ffffff',
     borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
+    padding: 18,
+    margin: 4,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowRadius: 6,
+    elevation: 10,
+    alignItems: 'center',
   },
-
-  cardImage: {
+  image: {
     width: '100%',
-    height: 140,
-    borderRadius: 14,
+    height: 130,
+    borderRadius: 12,
     resizeMode: 'cover',
   },
-
-  cardTitle: {
+  title: {
+    fontSize: 16,
     fontWeight: '700',
-    fontSize: 18,
-    color: '#1f2937',
-    marginTop: 12,
+    color: '#1e293b',
+    marginTop: 10,
   },
-
-  cardSubtitle: {
-    fontSize: 14,
-    color: '#6b7280', // cool gray
+  subtitle: {
+    fontSize: 13,
+    color: '#6b7280',
     marginTop: 4,
   },
-
-  cardPrice: {
-    fontSize: 16,
-    color: '#10b981', // emerald green
+  price: {
+    fontSize: 15,
+    color: '#10b981',
     fontWeight: '700',
-    marginTop: 8,
-    marginBottom: 12,
+    marginTop: 6,
   },
 });

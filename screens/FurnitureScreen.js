@@ -47,6 +47,7 @@ export default function FurnitureScreen() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.categoryContainer}></View>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -64,7 +65,7 @@ export default function FurnitureScreen() {
           </TouchableOpacity>
         ))}
       </ScrollView>
-
+      <View style={styles.cardsContainer}>
       <FlatList
         data={furnitureItems[selectedCategory]}
         keyExtractor={(item) => item.id}
@@ -83,14 +84,26 @@ export default function FurnitureScreen() {
         )}
       />
     </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  categoryContainer: {
+  paddingVertical: 1,
+  backgroundColor: '#ffffff',
+  paddingBottom: 3, // Reduced to fit more space for FlatList
+},
+
+cardsContainer: {
+  flex: 75,
+  paddingHorizontal: 1,
+},
+
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
-    paddingHorizontal: 12,
+    paddingHorizontal: 2,
     paddingTop: 10,
   },
   categoryScroll: {
@@ -99,24 +112,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     marginBottom: 8, // Reduced to fit more space for FlatList
   },
-  categoryButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: '#e5e7eb',
-    borderRadius: 25,
-    marginRight: 10,
-    minWidth: 100,
-    flexShrink: 0, // Prevents shrinking text
-  },
+
   categoryButtonActive: {
     backgroundColor: '#6A1B9A',
   },
-  categoryText: {
-    fontSize: 15,
-    color: '#1f2937',
-    fontWeight: '600',
-    textAlign: 'center',
-  },
+categoryButton: {
+  paddingHorizontal: 24, // increased from 20
+  paddingVertical: 14,   // increased from 10
+  backgroundColor: '#e5e7eb',
+  borderRadius: 30,      // increased from 25
+  marginRight: 12,       // slightly increased spacing
+  minWidth: 120, 
+  minHeight: 50,        // increased from 100
+  alignItems: 'center',
+},
+categoryText: {
+  fontSize: 16,          // increased from 14
+  fontWeight: '600',
+  color: '#1f2937',
+},
+
   categoryTextActive: {
     color: '#ffffff',
     fontWeight: '700',
@@ -128,13 +143,13 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#ffffff',
     borderRadius: 16,
-    padding: 10,
-    margin: 8,
+    padding: 18,
+    margin: 4,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
-    elevation: 3,
+    elevation: 10,
     alignItems: 'center',
   },
   image: {

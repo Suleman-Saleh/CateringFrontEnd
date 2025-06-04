@@ -18,7 +18,7 @@ const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => (
    <BookingProvider>
-    <Stack.Navigator initialRouteName="EventInfoScreen" screenOptions={{ headerShown: true }}>
+    <Stack.Navigator initialRouteName="OptionsScreen" screenOptions={{ headerShown: true }}>
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
      
