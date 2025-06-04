@@ -1,213 +1,180 @@
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { useNavigation } from '@react-navigation/native';
-import moment from 'moment';
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
-  Alert,
-  Button,
-  FlatList,
-  KeyboardAvoidingView,
+  LayoutAnimation,
   Platform,
   StyleSheet,
   Text,
+  TouchableOpacity,
+  UIManager,
   View,
 } from 'react-native';
-import DropDownPicker from 'react-native-dropdown-picker';
-//import MapView, { Marker } from 'react-native-maps';
 
-const EventInfoScreen = () => {
-  const navigation = useNavigation();
+import StepIndicator from 'react-native-step-indicator';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useBooking } from './BookingContextScreen';
+import DecorationSection from './DecorationScreen';
+import FurnitureScreen from './FurnitureScreen';
+import UtensilScreen from './UtensilScreen';
 
-  const [eventType, setEventType] = useState('');
-  const [openDropdown, setOpenDropdown] = useState(false);
-  const [eventTypes] = useState([
-    { label: 'Birthday', value: 'Birthday' },
-    { label: 'Wedding', value: 'Wedding' },
-    { label: 'Corporate', value: 'Corporate' },
-    { label: 'Other', value: 'Other' },
-  ]);
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
-  const [date, setDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
+export default function OptionsScreen({ navigation }) {
+  const [selectedTab, setSelectedTab] = useState('Decoration');
+  const { booking } = useBooking();
+  const { visitedDecoration, visitedUtensils, visitedFurniture, cartItems } = booking;
 
- // const [selectedLocation, setSelectedLocation] = useState(null);
- // const [mapRegion, setMapRegion] = useState(null);
+  const canProceed =
+    visitedDecoration &&
+    visitedUtensils &&
+    visitedFurniture &&
+    cartItems.length > 0;
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <Button
-          title="Logout"
-          onPress={() => {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'Login' }],
-            });
-          }}
-          color="red"
-        />
-      ),
-    });
-  }, [navigation]);
+  const tabs = [
+    { key: 'Decoration', icon: 'balloon-outline' },
+    { key: 'Utensils', icon: 'silverware-fork-knife' },
+    { key: 'Furniture', icon: 'sofa-outline' },
+  ];
 
- /* useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission Denied', 'Location access is required to use the map.');
-        return;
-      }
+  const labels = ['Event Info', 'Services', 'Summary', 'Payment'];
+  const icons = ['calendar', 'paint-brush', 'list-alt', 'credit-card'];
 
-      const location = await Location.getCurrentPositionAsync({});
-      setMapRegion({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
-      });
-    })();
-  }, []);
-
-  const handleMapPress = (event) => {
-    setSelectedLocation(event.nativeEvent.coordinate);
-  };*/
-
-  const handleNext = () => {
-    if (!eventType/* || !selectedLocation*/) {
-      Alert.alert('Missing Fields', 'Please complete all fields and select a location.');
-      return;
-    }
-
-    navigation.navigate('Decoration', {
-      eventType,
-      eventDateTime: date.toISOString(),
-      //eventLocation: selectedLocation,
-    });
+  const customStyles = {
+    stepIndicatorSize: 30,
+    currentStepIndicatorSize: 40,
+    separatorStrokeWidth: 2,
+    currentStepStrokeWidth: 3,
+    stepStrokeCurrentColor: '#6A1B9A',
+    stepStrokeWidth: 3,
+    stepStrokeFinishedColor: '#6A1B9A',
+    stepStrokeUnFinishedColor: '#D1C4E9',
+    separatorFinishedColor: '#6A1B9A',
+    separatorUnFinishedColor: '#D1C4E9',
+    stepIndicatorFinishedColor: '#6A1B9A',
+    stepIndicatorUnFinishedColor: '#FFFFFF',
+    stepIndicatorCurrentColor: '#FFFFFF',
+    stepIndicatorLabelFontSize: 13,
+    currentStepIndicatorLabelFontSize: 13,
+    stepIndicatorLabelCurrentColor: '#6A1B9A',
+    stepIndicatorLabelFinishedColor: '#FFFFFF',
+    stepIndicatorLabelUnFinishedColor: '#D1C4E9',
+    labelColor: '#999999',
+    labelSize: 13,
+    currentStepLabelColor: '#6A1B9A',
   };
 
-  const renderContent = () => (
-    <View style={styles.content}>
-      <Text style={styles.title}>Event Details</Text>
+  return (
+    <View style={styles.container}>
+      <StepIndicator
+        customStyles={customStyles}
+        currentPosition={1}
+        labels={labels}
+        stepCount={4}
+      />
 
-      <Text style={styles.label}>Event Type</Text>
-      <View style={{ zIndex: 1000 }}>
-        <DropDownPicker
-          open={openDropdown}
-          value={eventType}
-          items={eventTypes}
-          setOpen={setOpenDropdown}
-          setValue={setEventType}
-          setItems={() => {}}
-          placeholder="Select an event type"
-          style={styles.dropdown}
-          dropDownContainerStyle={styles.dropdownContainer}
-          zIndex={1000}
-        />
+      <View style={styles.tabsContainer}>
+        {tabs.map(({ key, icon }) => (
+          <TouchableOpacity
+            key={key}
+            style={[styles.tab, selectedTab === key && styles.activeTab]}
+            onPress={() => {
+              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+              setSelectedTab(key);
+            }}
+          >
+            <Icon
+              name={icon}
+              size={24}
+              color={selectedTab === key ? '#ffffff' : '#1e293b'}
+              style={{ marginBottom: 4 }}
+            />
+            <Text
+              style={[styles.tabText, selectedTab === key && styles.activeTabText]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
+              {key}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
-      <Text style={styles.label}>Event Date</Text>
-      <Button title={moment(date).format('YYYY-MM-DD')} onPress={() => setShowDatePicker(true)} />
-      {showDatePicker && (
-        <DateTimePicker
-          value={date}
-          mode="date"
-          display="default"
-          onChange={(event, selectedDate) => {
-            setShowDatePicker(false);
-            if (selectedDate) setDate(selectedDate);
-          }}
-        />
-      )}
+      <Text style={styles.progressText}>Step Progress: {[visitedDecoration, visitedUtensils, visitedFurniture].filter(Boolean).length}/3 Completed</Text>
 
-      <Text style={styles.label}>Event Time</Text>
-      <Button title={moment(date).format('HH:mm')} onPress={() => setShowTimePicker(true)} />
-      {showTimePicker && (
-        <DateTimePicker
-          value={date}
-          mode="time"
-          display="default"
-          is24Hour={true}
-          onChange={(event, selectedTime) => {
-            setShowTimePicker(false);
-            if (selectedTime) {
-              const newDate = new Date(date);
-              newDate.setHours(selectedTime.getHours());
-              newDate.setMinutes(selectedTime.getMinutes());
-              setDate(newDate);
-            }
-          }}
-        />
-      )}
-
-     <Text style={styles.label}>Select Event Location</Text>
-     
-
-      <View style={styles.buttonContainer}>
-        <Button title="Next: Decoration" onPress={handleNext} />
+      <View style={styles.contentContainer}>
+        {selectedTab === 'Decoration' && <DecorationSection navigation={navigation} />}
+        {selectedTab === 'Utensils' && <UtensilScreen navigation={navigation} />}
+        {selectedTab === 'Furniture' && <FurnitureScreen navigation={navigation} />}
       </View>
+
+      {canProceed && (
+        <TouchableOpacity
+          style={styles.proceedButton}
+          onPress={() => navigation.navigate('BookingConfirmationScreen')}
+        >
+          <Text style={styles.proceedText}>Continue to Payment</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
-
-  return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
-      <FlatList
-        data={[]}
-        renderItem={null}
-        ListHeaderComponent={renderContent}
-        keyboardShouldPersistTaps="handled"
-      />
-    </KeyboardAvoidingView>
-  );
-};
-
-export default EventInfoScreen;
+}
 
 const styles = StyleSheet.create({
-  flex: {
+  container: {
+    flex: 1,
+    padding: 12,
+    backgroundColor: '#ffffff',
+  },
+  tabsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    borderRadius: 12,
+    marginBottom: 10,
+    paddingHorizontal: 6,
+    backgroundColor: '#f3f4f6',
+  },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderRadius: 8,
+    marginHorizontal: 4,
+    backgroundColor: '#e5e7eb',
+  },
+  activeTab: {
+    backgroundColor: '#6A1B9A',
+  },
+  tabText: {
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+    color: '#1e293b',
+  },
+  activeTabText: {
+    color: '#ffffff',
+  },
+  progressText: {
+    textAlign: 'center',
+    marginVertical: 10,
+    fontSize: 14,
+    color: '#334155',
+  },
+  contentContainer: {
     flex: 1,
   },
-  content: {
-    padding: 20,
-    backgroundColor: '#fff',
-    zIndex: 1,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  label: {
-    fontSize: 16,
-    marginTop: 12,
-    marginBottom: 6,
-    color: '#333',
-  },
-  dropdown: {
-    backgroundColor: '#f9f9f9',
-    borderColor: '#aaa',
-    marginBottom: 10,
-    zIndex: 1000,
-  },
-  dropdownContainer: {
-    backgroundColor: '#f9f9f9',
-    borderColor: '#aaa',
-    zIndex: 1000,
-  },
-  map: {
-    width: '100%',
-    height: 250,
-    marginTop: 10,
+  proceedButton: {
+    padding: 16,
     borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 20,
+    backgroundColor: '#6A1B9A',
   },
-  buttonContainer: {
-    marginTop: 30,
+  proceedText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
-
- /*{mapRegion && (
-        <MapView style={styles.map} region={mapRegion} onPress={handleMapPress}>
-          {selectedLocation && <Marker coordinate={selectedLocation} />}
-        </MapView>
-      )}*/
