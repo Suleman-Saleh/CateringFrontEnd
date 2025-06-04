@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 
+import StepIndicator from 'react-native-step-indicator';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useBooking } from './BookingContextScreen';
 import DecorationSection from './DecorationScreen';
@@ -36,24 +37,41 @@ export default function OptionsScreen({ navigation }) {
     { key: 'Furniture', icon: 'sofa-outline' },
   ];
 
+  const labels = ['Event Info', 'Services', 'Summary', 'Payment'];
+  const icons = ['calendar', 'paint-brush', 'list-alt', 'credit-card'];
+
+  const customStyles = {
+    stepIndicatorSize: 30,
+    currentStepIndicatorSize: 40,
+    separatorStrokeWidth: 2,
+    currentStepStrokeWidth: 3,
+    stepStrokeCurrentColor: '#6A1B9A',
+    stepStrokeWidth: 3,
+    stepStrokeFinishedColor: '#6A1B9A',
+    stepStrokeUnFinishedColor: '#D1C4E9',
+    separatorFinishedColor: '#6A1B9A',
+    separatorUnFinishedColor: '#D1C4E9',
+    stepIndicatorFinishedColor: '#6A1B9A',
+    stepIndicatorUnFinishedColor: '#FFFFFF',
+    stepIndicatorCurrentColor: '#FFFFFF',
+    stepIndicatorLabelFontSize: 13,
+    currentStepIndicatorLabelFontSize: 13,
+    stepIndicatorLabelCurrentColor: '#6A1B9A',
+    stepIndicatorLabelFinishedColor: '#FFFFFF',
+    stepIndicatorLabelUnFinishedColor: '#D1C4E9',
+    labelColor: '#999999',
+    labelSize: 13,
+    currentStepLabelColor: '#6A1B9A',
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <View style={styles.stepperContainer}>
-          <View style={[styles.step, styles.stepCompleted]}>
-            <Text style={styles.stepText}>1</Text>
-          </View>
-          <View style={styles.stepLine} />
-          <View style={[styles.step, styles.stepActive]}>
-            <Text style={styles.stepText}>2</Text>
-          </View>
-          <View style={styles.stepLine} />
-          <View style={styles.step}>
-            <Text style={styles.stepText}>3</Text>
-          </View>
-        </View>
-        <Text style={styles.identifierText}>Step 2 of 3: Choose Essentials</Text>
-      </View>
+      <StepIndicator
+        customStyles={customStyles}
+        currentPosition={1}
+        labels={labels}
+        stepCount={4}
+      />
 
       <View style={styles.tabsContainer}>
         {tabs.map(({ key, icon }) => (
@@ -108,49 +126,6 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: '#ffffff',
   },
-  headerContainer: {
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  stepperContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  step: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    borderWidth: 2,
-    borderColor: '#cbd5e1',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
-  },
-  stepCompleted: {
-    backgroundColor: '#4ade80',
-    borderColor: '#4ade80',
-  },
-  stepActive: {
-    backgroundColor: '#6366f1',
-    borderColor: '#6366f1',
-  },
-  stepText: {
-    color: '#ffffff',
-    fontWeight: 'bold',
-  },
-  stepLine: {
-    height: 2,
-    width: 20,
-    backgroundColor: '#cbd5e1',
-  },
-  identifierText: {
-    fontSize: 18,
-    fontWeight: '700',
-    textAlign: 'center',
-    color: '#1e40af',
-  },
   tabsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -170,7 +145,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#e5e7eb',
   },
   activeTab: {
-    backgroundColor: '#6366f1',
+    backgroundColor: '#6A1B9A',
   },
   tabText: {
     fontSize: 12,
@@ -195,7 +170,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 20,
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#6A1B9A',
   },
   proceedText: {
     color: '#ffffff',

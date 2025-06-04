@@ -1,7 +1,5 @@
-
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-
 import {
   Dimensions,
   FlatList,
@@ -10,9 +8,9 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
-import { useBooking } from './BookingContextScreen'; // adjust import path
+import { useBooking } from './BookingContextScreen';
 
 const furnitureItems = {
   Chairs: [
@@ -37,164 +35,129 @@ const furnitureItems = {
 
 export default function FurnitureScreen() {
   const { updateBooking } = useBooking();
-
   useEffect(() => {
-    // Mark Decoration as visited when this screen mounts
     updateBooking({ visitedFurniture: true });
   }, []);
+
   const [selectedCategory, setSelectedCategory] = useState('Chairs');
   const categories = Object.keys(furnitureItems);
-   const navigation = useNavigation();
+  const navigation = useNavigation();
   const { width } = Dimensions.get('window');
-  const cardWidth = (width - 48) / 2; // 16px padding + 16px between cards
+  const cardWidth = (width - 48) / 2;
 
- return (
-   <View style={styles.furnitureContainer}>
-     {/* Category Tabs */}
-     <ScrollView
-       horizontal={true}
-       showsHorizontalScrollIndicator={false}
-       contentContainerStyle={styles.categoryTabsContainer}
-     >
-       {categories.map((category) => (
-         <TouchableOpacity
-           key={category}
-           onPress={() => setSelectedCategory(category)}
-           style={[
-             styles.categoryButton,
-             selectedCategory === category && styles.selectedCategoryButton,
-           ]}
-         >
-           <Text
-             style={[
-               styles.categoryText,
-               selectedCategory === category && styles.selectedCategoryText,
-             ]}
-           >
-             {category}
-           </Text>
-         </TouchableOpacity>
-       ))}
-     </ScrollView>
- 
-     {/* Item List */}
-     <FlatList
-       data={furnitureItems[selectedCategory]}
-       keyExtractor={(item) => item.id}
-       numColumns={2}
-       contentContainerStyle={styles.flatListContainer}
-       renderItem={({ item }) => (
-        <TouchableOpacity
-                    style={[styles.itemCard, { width: cardWidth }]}
-                    onPress={() => navigation.navigate('ItemCartScreen', { item })}
-                  >
-           <Image source={{ uri: item.image }} style={styles.cardImage} />
-           <Text style={styles.cardTitle}>{item.name}</Text>
-           <Text style={styles.cardSubtitle}>{item.style}</Text>
-           <Text style={styles.cardPrice}>{item.price}</Text>
-         </TouchableOpacity>
-       )}
-     />
-   </View>
- );
- }
- 
- const styles = StyleSheet.create({
- furnitureContainer: {
+  return (
+    <View style={styles.container}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.categoryScroll}
+      >
+        {categories.map((category) => (
+          <TouchableOpacity
+            key={category}
+            onPress={() => setSelectedCategory(category)}
+            style={[styles.categoryButton, selectedCategory === category && styles.categoryButtonActive]}
+          >
+            <Text style={[styles.categoryText, selectedCategory === category && styles.categoryTextActive]}>
+              {category}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      <FlatList
+        data={furnitureItems[selectedCategory]}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        contentContainerStyle={styles.listContainer}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={[styles.card, { width: cardWidth }]}
+            onPress={() => navigation.navigate('ItemCartScreen', { item })}
+          >
+            <Image source={{ uri: item.image }} style={styles.image} />
+            <Text style={styles.title}>{item.name}</Text>
+            <Text style={styles.subtitle}>{item.material}</Text>
+            <Text style={styles.price}>{item.price}</Text>
+          </TouchableOpacity>
+        )}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
     flex: 1,
-    backgroundColor: '#f9fafb', // soft off-white
-    paddingHorizontal: 16,
-    paddingTop: 5,
-    paddingBottom: 20,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 12,
+    paddingTop: 10,
   },
-
-  categoryTabsContainer: {
+  categoryScroll: {
     flexDirection: 'row',
-    paddingVertical: 1,
-    paddingHorizontal: 5,
-    marginBottom: 80,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    marginBottom: 8, // Reduced to fit more space for FlatList
   },
-
   categoryButton: {
-    paddingHorizontal: 18,
+    paddingHorizontal: 20,
     paddingVertical: 10,
+    backgroundColor: '#e5e7eb',
     borderRadius: 25,
-    backgroundColor: '#e0e7ff', // soft periwinkle
-    marginRight: 12,
-    maxWidth: 130,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#a0a7ff', // subtle shadow
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.35,
-    shadowRadius: 4,
-    elevation: 3,
-    overflow: 'hidden',
+    marginRight: 10,
+    minWidth: 100,
+    flexShrink: 0, // Prevents shrinking text
   },
-
-  selectedCategoryButton: {
-    backgroundColor: '#4f46e5', // vibrant indigo
-    shadowColor: '#4f46e5',
-    shadowOpacity: 0.5,
-    elevation: 6,
+  categoryButtonActive: {
+    backgroundColor: '#6A1B9A',
   },
-
   categoryText: {
     fontSize: 15,
-    color: '#3b4252',
+    color: '#1f2937',
     fontWeight: '600',
     textAlign: 'center',
-    flexShrink: 1,
   },
-
-  selectedCategoryText: {
-    color: '#fff',
+  categoryTextActive: {
+    color: '#ffffff',
     fontWeight: '700',
   },
-
-  flatListContainer: {
-    paddingTop: 0,
-    paddingBottom: 40,
+  listContainer: {
+    paddingBottom: 30,
+    paddingTop: 4,
   },
-
   card: {
-    backgroundColor: '#fff',
-    margin: 10,
+    backgroundColor: '#ffffff',
     borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
+    padding: 10,
+    margin: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowRadius: 6,
+    elevation: 3,
+    alignItems: 'center',
   },
-
-  cardImage: {
+  image: {
     width: '100%',
-    height: 140,
-    borderRadius: 14,
+    height: 130,
+    borderRadius: 12,
     resizeMode: 'cover',
   },
-
-  cardTitle: {
+  title: {
+    fontSize: 16,
     fontWeight: '700',
-    fontSize: 18,
-    color: '#1f2937',
-    marginTop: 12,
+    color: '#1e293b',
+    marginTop: 10,
   },
-
-  cardSubtitle: {
-    fontSize: 14,
-    color: '#6b7280', // cool gray
+  subtitle: {
+    fontSize: 13,
+    color: '#6b7280',
     marginTop: 4,
   },
-
-  cardPrice: {
-    fontSize: 16,
-    color: '#10b981', // emerald green
+  price: {
+    fontSize: 15,
+    color: '#10b981',
     fontWeight: '700',
-    marginTop: 8,
-    marginBottom: 12,
+    marginTop: 6,
   },
 });
