@@ -48,7 +48,7 @@ export default function UtensilScreen() {
     updateBooking({ visitedFurniture: true });
   }, []);
 
-  const [selectedCategory, setSelectedCategory] = useState('Chairs');
+  const [selectedCategory, setSelectedCategory] = useState('Cups');
   const categories = Object.keys(utensilItems);
   const navigation = useNavigation();
   const { width } = Dimensions.get('window');

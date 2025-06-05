@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 
 import StepIndicator from 'react-native-step-indicator';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import { useBooking } from './BookingContextScreen';
 import DecorationSection from './DecorationScreen';
 import FurnitureScreen from './FurnitureScreen';
@@ -22,7 +22,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 export default function OptionsScreen({ navigation }) {
   const [selectedTab, setSelectedTab] = useState('Decoration');
-  const { booking } = useBooking();
+  const { updateBooking , booking } = useBooking();
   const { visitedDecoration, visitedUtensils, visitedFurniture, cartItems } = booking;
 
   const canProceed =
@@ -32,13 +32,13 @@ export default function OptionsScreen({ navigation }) {
     cartItems.length > 0;
 
   const tabs = [
-    { key: 'Decoration', icon: 'balloon-outline' },
-    { key: 'Utensils', icon: 'silverware-fork-knife' },
-    { key: 'Furniture', icon: 'sofa-outline' },
+    { key: 'Decoration', icon: 'paint-brush' },
+    { key: 'Utensils', icon: 'cutlery' },
+    { key: 'Furniture', icon: 'bed' },
   ];
 
   const labels = ['Event Info', 'Services', 'Summary', 'Payment'];
-  const icons = ['calendar', 'paint-brush', 'list-alt', 'credit-card'];
+  const icons = ['calendar', 'paint-brush', 'list-alt', 'credit-card']; // FontAwesome icon names
 
   const customStyles = {
     stepIndicatorSize: 30,
@@ -66,26 +66,67 @@ export default function OptionsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <StepIndicator
-        customStyles={customStyles}
-        currentPosition={1}
-        labels={labels}
-        stepCount={4}
-      />
+     <StepIndicator
+  customStyles={customStyles}
+  currentPosition={1}
+  labels={labels}
+  stepCount={4}
+  renderStepIndicator={({ position, stepStatus }) => {
+    const iconName = icons[position];
+    const color =
+      stepStatus === 'current'
+        ? '#6A1B9A'
+        : stepStatus === 'finished'
+        ? '#fff'
+        : '#D1C4E9';
+    const bgColor =
+      stepStatus === 'current'
+        ? '#fff'
+        : stepStatus === 'finished'
+        ? '#6A1B9A'
+        : '#fff';
+
+    return (
+      <View
+        style={{
+          backgroundColor: bgColor,
+          width: 30,
+          height: 30,
+          borderRadius: 15,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <Icon name={iconName} size={16} color={color} />
+      </View>
+    );
+  }}
+/>
+
 
       <View style={styles.tabsContainer}>
         {tabs.map(({ key, icon }) => (
           <TouchableOpacity
             key={key}
             style={[styles.tab, selectedTab === key && styles.activeTab]}
-            onPress={() => {
-              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-              setSelectedTab(key);
-            }}
+           onPress={() => {
+  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  setSelectedTab(key);
+
+  // Mark tab as visited
+  if (key === 'Decoration' && !visitedDecoration) {
+    updateBooking({ visitedDecoration: true });
+  } else if (key === 'Utensils' && !visitedUtensils) {
+    updateBooking({ visitedUtensils: true });
+  } else if (key === 'Furniture' && !visitedFurniture) {
+    updateBooking({ visitedFurniture: true });
+  }
+}}
+
           >
             <Icon
               name={icon}
-              size={24}
+              size={20}
               color={selectedTab === key ? '#ffffff' : '#1e293b'}
               style={{ marginBottom: 4 }}
             />
@@ -100,7 +141,10 @@ export default function OptionsScreen({ navigation }) {
         ))}
       </View>
 
-      <Text style={styles.progressText}>Step Progress: {[visitedDecoration, visitedUtensils, visitedFurniture].filter(Boolean).length}/3 Completed</Text>
+      <Text style={styles.progressText}>
+        Step Progress:{' '}
+        {[visitedDecoration, visitedUtensils, visitedFurniture].filter(Boolean).length}/3 Completed
+      </Text>
 
       <View style={styles.contentContainer}>
         {selectedTab === 'Decoration' && <DecorationSection navigation={navigation} />}

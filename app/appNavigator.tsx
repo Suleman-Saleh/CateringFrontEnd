@@ -11,6 +11,7 @@ import OptionsScreen from '../screens/OptionsScreen';
 import PaymentScreen from '../screens/PaymentScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import SummaryScreen from '../screens/SummaryScreen';
+import UserDashboardScreen from '../screens/UserDashboardScreen';
 import UtensilScreen from '../screens/UtensilScreen';
 // import AdminDashboardScreen from './screens/AdminDashboardScreen';
 
@@ -18,10 +19,10 @@ const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => (
    <BookingProvider>
-    <Stack.Navigator initialRouteName="OptionsScreen" screenOptions={{ headerShown: true }}>
+    <Stack.Navigator initialRouteName="UserDashboardScreen" screenOptions={{ headerShown: true }}>
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
-     
+      <Stack.Screen name="UserDashboardScreen" component={UserDashboardScreen} />
        <Stack.Screen name="OptionsScreen" component={OptionsScreen} />
       <Stack.Screen name="DecorationScreen"  component={DecorationScreen}  options={{ headerShown: false }}/>
       <Stack.Screen name="ItemCartScreen" component={ItemCartScreen} />
