@@ -157,7 +157,7 @@ export default function OptionsScreen({ navigation }) {
           style={styles.proceedButton}
           onPress={() => navigation.navigate('BookingConfirmationScreen')}
         >
-          <Text style={styles.proceedText}>Continue to Payment</Text>
+          <Text style={styles.proceedText}>Continue to Summary</Text>
         </TouchableOpacity>
       )}
     </View>

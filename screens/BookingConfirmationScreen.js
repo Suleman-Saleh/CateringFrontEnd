@@ -1,9 +1,15 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Button, FlatList, StyleSheet, Text, View } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 import StepIndicator from 'react-native-step-indicator';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { useBooking } from './BookingContextScreen'; // adjust the path
+import { useBooking } from './BookingContextScreen';
 
 const labels = ['Event Info', 'Services', 'Summary', 'Payment'];
 const icons = ['calendar', 'paint-brush', 'list-alt', 'credit-card'];
@@ -76,9 +82,21 @@ const BookingSummaryScreen = () => {
     navigation.navigate('PaymentScreen');
   };
 
+  const eventDate = booking.eventDateTime ? new Date(booking.eventDateTime) : null;
+
+  const locationText =
+    booking.locationName
+      ? booking.locationName
+      : booking.eventLocation
+      ? `${booking.eventLocation.latitude.toFixed(4)}, ${booking.eventLocation.longitude.toFixed(4)}`
+      : 'N/A';
+
   return (
-    <View style={styles.container}>
-      {/* Step Indicator */}
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
       <StepIndicator
         customStyles={customStyles}
         currentPosition={2}
@@ -88,44 +106,40 @@ const BookingSummaryScreen = () => {
       />
 
       <Text style={styles.title}>Summary</Text>
-      <Text style={styles.subtitle}>Please review all details before proceeding to payment</Text>
+      <Text style={styles.subtitle}>
+        Please review all details before proceeding to payment
+      </Text>
 
-      {/* Event Details */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Event Details</Text>
         <Text>Event Type: {booking.eventType || 'N/A'}</Text>
-        <Text>Date: {booking.eventDateTime?.split('T')[0] || 'N/A'}</Text>
-        <Text>Time: {booking.eventDateTime?.split('T')[1] || 'N/A'}</Text>
-        <Text>Location: {booking.eventLocation || 'N/A'}</Text>
+        <Text>Date: {eventDate ? eventDate.toLocaleDateString() : 'N/A'}</Text>
+        <Text>Time: {eventDate ? eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}</Text>
+        <Text>Location: {locationText}</Text>
       </View>
 
-      {/* Selected Services */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Selected Services</Text>
         {booking.cartItems.length === 0 ? (
           <Text>No services selected.</Text>
         ) : (
-          <FlatList
-            data={booking.cartItems}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <Text>• {item.name}</Text>
-            )}
-          />
+          booking.cartItems.map((item) => (
+            <Text key={item.id}>• {item.name}</Text>
+          ))
         )}
       </View>
 
-      {/* Total Amount */}
       <View style={styles.totalBox}>
         <Text style={styles.totalText}>Total Amount</Text>
         <Text style={styles.amount}>${grandTotal.toFixed(2)}</Text>
       </View>
 
-      {/* Proceed Button */}
-      <View style={{ marginTop: 20 }}>
-        <Button title="Proceed to Payment" onPress={handleProceedToPayment} color="#6A1B9A" />
-      </View>
-    </View>
+      <TouchableOpacity style={styles.button} onPress={handleProceedToPayment}>
+        <Text style={styles.buttonText}>Proceed to Payment</Text>
+      </TouchableOpacity>
+
+      <View style={{ height: 40 }} />
+    </ScrollView>
   );
 };
 
@@ -134,8 +148,11 @@ export default BookingSummaryScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 25,
     backgroundColor: '#FAFAFA',
+  },
+  scrollContent: {
+    padding: 25,
+    paddingBottom: 50,
   },
   title: {
     fontSize: 24,
@@ -176,5 +193,18 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: '#6A1B9A',
+  },
+  button: {
+    marginTop: 20,
+    backgroundColor: '#6A1B9A',
+    paddingVertical: 16,
+    borderRadius: 10,
+    alignItems: 'center',
+    elevation: 3,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
   },
 });

@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const events = [
   { id: '1', title: 'Birthday Party', date: 'June 15, 2024', status: 'Confirmed' },
@@ -19,7 +19,9 @@ const DashboardScreen = () => {
       <Text style={styles.eventTitle}>{item.title}</Text>
       <Text style={styles.eventDate}>{item.date}</Text>
       <View style={[styles.statusBadge, item.status === 'Confirmed' ? styles.statusConfirmed : styles.statusPending]}>
-        <Text style={item.status === 'Confirmed' ? styles.statusTextConfirmed : styles.statusTextPending}>{item.status}</Text>
+        <Text style={item.status === 'Confirmed' ? styles.statusTextConfirmed : styles.statusTextPending}>
+          {item.status}
+        </Text>
       </View>
     </View>
   );
@@ -31,51 +33,47 @@ const DashboardScreen = () => {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <Text style={styles.header}>EventFlow Dashboard</Text>
+    <FlatList
+      data={events}
+      renderItem={renderEvent}
+      keyExtractor={item => item.id}
+      ListHeaderComponent={
+        <>
+          <Text style={styles.header}>Dashboard</Text>
 
-      {/* Quick Actions */}
-      <View style={styles.quickActionsRow}>
-        <TouchableOpacity onPress={handleNewEvent} style={[styles.actionButton, styles.primaryAction]}>
-          <Text style={styles.primaryActionText}>+ New Event</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton}>
-          <Text style={styles.secondaryActionText}>View Events</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton}>
-          <Text style={styles.secondaryActionText}>Settings</Text>
-        </TouchableOpacity>
-      </View>
+          {/* Quick Actions */}
+          <View style={styles.quickActionsRow}>
+            <TouchableOpacity onPress={handleNewEvent} style={[styles.actionButton, styles.primaryAction]}>
+              <Text style={styles.primaryActionText}>+ New Event</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton}>
+              <Text style={styles.secondaryActionText}>View Events</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton}>
+              <Text style={styles.secondaryActionText}>Settings</Text>
+            </TouchableOpacity>
+          </View>
 
-      {/* Recent Events & Statistics */}
-      <View style={styles.sectionRow}>
-        <View style={styles.recentEventsContainer}>
           <Text style={styles.sectionTitle}>Recent Events</Text>
-          <FlatList
-            data={events}
-            renderItem={renderEvent}
-            keyExtractor={item => item.id}
-          />
-        </View>
-
+        </>
+      }
+      ListFooterComponent={
         <View style={styles.statsContainer}>
           <Text style={styles.sectionTitle}>Statistics</Text>
           <Text style={styles.statText}>Total Events: {stats.total}</Text>
           <Text style={[styles.statText, styles.confirmedText]}>Confirmed: {stats.confirmed}</Text>
           <Text style={[styles.statText, styles.pendingText]}>Pending: {stats.pending}</Text>
         </View>
-      </View>
-    </ScrollView>
+      }
+      contentContainerStyle={styles.contentContainer}
+    />
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-  },
   contentContainer: {
     padding: 16,
+    backgroundColor: '#F9FAFB',
   },
   header: {
     fontSize: 24,
@@ -110,31 +108,6 @@ const styles = StyleSheet.create({
     color: '#1F2937',
     fontWeight: '500',
   },
-  sectionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  recentEventsContainer: {
-    flex: 2,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginRight: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  statsContainer: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
-  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
@@ -151,6 +124,16 @@ const styles = StyleSheet.create({
   },
   pendingText: {
     color: '#B45309',
+  },
+  statsContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
+    marginTop: 16,
   },
   card: {
     backgroundColor: '#FFFFFF',
