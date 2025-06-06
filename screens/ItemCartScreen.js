@@ -27,7 +27,8 @@ export default function ItemCartScreen({ route, navigation }) {
       Alert.alert('Invalid Quantity', 'Please enter a quantity greater than zero.');
       return;
     }
-    addToCart(item, qty);
+    addToCart({ ...item, quantity: qty });
+
     Alert.alert('Added to Cart', `${qty} x ${item.name} added to cart!\nTotal: $${totalPrice}`);
     navigation.goBack();
   };

@@ -14,22 +14,22 @@ import { useBooking } from './BookingContextScreen';
 
 const furnitureItems = {
   Chairs: [
-    { id: 'ch1', name: 'Folding Chair', material: 'Metal', price: '$10', image: 'https://images.unsplash.com/photo-1519710164239-da123dc03ef4' },
-    { id: 'ch2', name: 'Banquet Chair', material: 'Plastic', price: '$12', image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc' },
-    { id: 'ch3', name: 'Lounge Chair', material: 'Leather', price: '$30', image: 'https://images.unsplash.com/photo-1505692794403-82ed43c318f7' },
+    { id: 'ch1', name: 'Folding Chair', material: 'Metal', price: 10, image: 'https://images.unsplash.com/photo-1519710164239-da123dc03ef4' },
+    { id: 'ch2', name: 'Banquet Chair', material: 'Plastic', price: 12, image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc' },
+    { id: 'ch3', name: 'Lounge Chair', material: 'Leather', price: 30, image: 'https://images.unsplash.com/photo-1505692794403-82ed43c318f7' },
   ],
   Tables: [
-    { id: 'tb1', name: 'Round Table', material: 'Wood', price: '$50', image: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36' },
-    { id: 'tb2', name: 'Banquet Table', material: 'Plastic', price: '$40', image: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d' },
-    { id: 'tb3', name: 'Cocktail Table', material: 'Metal', price: '$45', image: 'https://images.unsplash.com/photo-1519710164239-da123dc03ef4' },
+    { id: 'tb1', name: 'Round Table', material: 'Wood', price: 50, image: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36' },
+    { id: 'tb2', name: 'Banquet Table', material: 'Plastic', price:40, image: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d' },
+    { id: 'tb3', name: 'Cocktail Table', material: 'Metal', price: 45, image: 'https://images.unsplash.com/photo-1519710164239-da123dc03ef4' },
   ],
   Lounging: [
-    { id: 'lg1', name: 'Sofa', material: 'Fabric', price: '$100', image: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36' },
-    { id: 'lg2', name: 'Ottoman', material: 'Leather', price: '$60', image: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d' },
+    { id: 'lg1', name: 'Sofa', material: 'Fabric', price: 100, image: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36' },
+    { id: 'lg2', name: 'Ottoman', material: 'Leather', price: 60, image: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d' },
   ],
   StageFurniture: [
-    { id: 'st1', name: 'Podium', material: 'Wood', price: '$150', image: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8' },
-    { id: 'st2', name: 'Stage Platform', material: 'Metal/Wood', price: '$300', image: 'https://images.unsplash.com/photo-1505692794403-82ed43c318f7' },
+    { id: 'st1', name: 'Podium', material: 'Wood', price: 150, image: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8' },
+    { id: 'st2', name: 'Stage Platform', material: 'Metal/Wood', price: 300, image: 'https://images.unsplash.com/photo-1505692794403-82ed43c318f7' },
   ],
 };
 

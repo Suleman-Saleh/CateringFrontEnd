@@ -10,9 +10,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useBooking } from './BookingContextScreen'; // adjust import path
+import { useBooking } from './BookingContextScreen';
 
 import { useNavigation } from '@react-navigation/native';
+
 
 
 const defaultItems = {
@@ -21,70 +22,80 @@ const defaultItems = {
       id: 'l1',
       name: 'LED Lights',
       style: 'Modern',
-      price: '$10',
+      price: 10,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1582719478250-04a6f016fd9c',
     },
     {
       id: 'l2',
       name: 'Spotlights',
       style: 'Vintage',
-      price: '$15',
+      price: 15,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1599491143532-6b78e7a2bb3c',
     },
     {
       id: 'l3',
       name: 'Fairy Lights',
       style: 'Cozy',
-      price: '$8',
+      price: 8,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750',
     },
     {
       id: 'l4',
       name: 'Chandeliers',
       style: 'Elegant',
-      price: '$55',
+      price: 55,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1582719478250-04a6f016fd9c',
     },
     {
       id: 'l5',
       name: 'Stage Lights',
       style: 'Pro',
-      price: '$35',
+      price: 35,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1610972010079-99f06b3b2e1f',
     },
     {
       id: 'l6',
       name: 'Wall Lamps',
       style: 'Classic',
-      price: '$20',
+      price: 20,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1601979031925-4046bd1dc5b1',
     },
     {
       id: 'l7',
       name: 'Lanterns',
       style: 'Rustic',
-      price: '$12',
+      price: 12,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1527529482837-4698179dc6ce',
     },
     {
       id: 'l8',
       name: 'Flood Lights',
       style: 'Industrial',
-      price: '$25',
+      price: 25,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1614283247215-2cf34dcdbd0c',
     },
     {
       id: 'l9',
       name: 'Floor Lamps',
       style: 'Minimalist',
-      price: '$22',
+      price: 22,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1523413651479-597eb2da0ad6',
     },
     {
       id: 'l10',
       name: 'Neon Signs',
       style: 'Trendy',
-      price: '$30',
+      price: 30,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c',
     },
   ],
@@ -93,70 +104,80 @@ const defaultItems = {
       id: 's1',
       name: 'Speakers',
       style: 'Loud',
-      price: '$50',
+      price: 50,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1570824104453-d2afbcdfda5b',
     },
     {
       id: 's2',
       name: 'Microphones',
       style: 'Wireless',
-      price: '$20',
+      price: 20,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1544511916-0148ccdeb877',
     },
     {
       id: 's3',
       name: 'Mixers',
       style: '8-Channel',
-      price: '$75',
+      price: 75,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1585392095623-90c3fddbe5ad',
     },
     {
       id: 's4',
       name: 'Soundbar',
       style: 'Compact',
-      price: '$60',
+      price: 60,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1610621406041-8f83e59c537d',
     },
     {
       id: 's5',
       name: 'Subwoofers',
       style: 'Deep Bass',
-      price: '$90',
+      price: 90,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1607758471579-347b60be3c49',
     },
     {
       id: 's6',
       name: 'DJ Console',
       style: 'Advanced',
-      price: '$150',
+      price: 150,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1612731486604-2fd1dffef445',
     },
     {
       id: 's7',
       name: 'PA System',
       style: 'Portable',
-      price: '$120',
+      price: 120,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1575116460701-e6e147ae9b66',
     },
     {
       id: 's8',
       name: 'Bluetooth Mic',
       style: 'Handheld',
-      price: '$18',
+      price: 18,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1599507593361-3b2eeb3c2117',
     },
     {
       id: 's9',
       name: 'Ceiling Speakers',
       style: 'Flush',
-      price: '$40',
+      price: 40,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1589621316559-84b6b001b4e2',
     },
     {
       id: 's10',
       name: 'Monitor Speakers',
       style: 'Studio',
-      price: '$65',
+      price: 65,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1555617980-d68ebf4c13d6',
     },
   ],
@@ -165,70 +186,80 @@ const defaultItems = {
       id: 'st1',
       name: 'Main Stage',
       style: 'Grand',
-      price: '$500',
+      price: 500,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1612797283916-53a2ac5b64eb',
     },
     {
       id: 'st2',
       name: 'Podium',
       style: 'Wooden',
-      price: '$100',
+      price: 100,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1573164574511-73c3f7d1be32',
     },
     {
       id: 'st3',
       name: 'Backdrop',
       style: 'Custom Printed',
-      price: '$150',
+      price: 150,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1599351433273-fc32447f7964',
     },
     {
       id: 'st4',
       name: 'LED Walls',
       style: 'Dynamic',
-      price: '$1000',
+      price: 1000,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1621939515954-16d7e4a82db5',
     },
     {
       id: 'st5',
       name: 'Stage Truss',
       style: 'Aluminum',
-      price: '$200',
+      price: 200,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1610509528010-e160c2cc4796',
     },
     {
       id: 'st6',
       name: 'Smoke Machine',
       style: 'Electric',
-      price: '$80',
+      price: 80,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1607290817806-e763dff87d3e',
     },
     {
       id: 'st7',
       name: 'Stage Carpet',
       style: 'Red',
-      price: '$70',
+      price: 70,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1601313959462-6e4e0b6575ac',
     },
     {
       id: 'st8',
       name: 'Podium Lights',
       style: 'Adjustable',
-      price: '$30',
+      price: 30,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1583337130417-3346a1b8e917',
     },
     {
       id: 'st9',
       name: 'Side Wings',
       style: 'Foldable',
-      price: '$60',
+      price: 60,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1626938746656-92e700bdfaa3',
     },
     {
       id: 'st10',
       name: 'Curtain System',
       style: 'Motorized',
-      price: '$250',
+      price: 250,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1590602847861-df2bdc2c204f',
     },
   ],
@@ -237,70 +268,80 @@ const defaultItems = {
       id: 'f1',
       name: 'Roses',
       style: 'Red Bunch',
-      price: '$12',
+      price: 12,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1504198458649-3128b932f49b',
     },
     {
       id: 'f2',
       name: 'Lilies',
       style: 'White',
-      price: '$15',
+      price: 15,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1508780709619-79562169bc64',
     },
     {
       id: 'f3',
       name: 'Orchids',
       style: 'Purple',
-      price: '$20',
+      price: 20,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1602407294553-6f7d0c2173b7',
     },
     {
       id: 'f4',
       name: 'Tulips',
       style: 'Mixed',
-      price: '$18',
+      price: 18,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba',
     },
     {
       id: 'f5',
       name: 'Marigold',
       style: 'Orange',
-      price: '$10',
+      price: 10,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1585155775092-35857aa193a9',
     },
     {
       id: 'f6',
       name: 'Sunflowers',
       style: 'Bright',
-      price: '$14',
+      price: 14,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
     },
     {
       id: 'f7',
       name: 'Daisies',
       style: 'White',
-      price: '$8',
+      price: 8,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1501004318641-b39e6451bec6',
     },
     {
       id: 'f8',
       name: 'Carnations',
       style: 'Pink',
-      price: '$9',
+      price: 9,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1543872084-c7bd3822856f',
     },
     {
       id: 'f9',
       name: 'Jasmine',
       style: 'White',
-      price: '$11',
+      price: 11,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d',
     },
     {
       id: 'f10',
       name: 'Gardenias',
       style: 'Fragrant',
-      price: '$25',
+      price: 25,
+      category: 'decoration',
       image: 'https://images.unsplash.com/photo-1500917293891-ef795e70e1f6',
     },
   ],
@@ -311,6 +352,17 @@ export default function DecorationSection() {
   useEffect(() => {
     updateBooking({ visitedFurniture: true });
   }, []);
+
+  const { booking } = useBooking();
+
+  // Filter decoration items
+  const decorationItems = booking.cartItems.filter(item => item.category === 'decoration');
+
+  // Calculate total
+  const decorationTotal = decorationItems.reduce(
+    (total, item) => total + item.price * item.quantity,
+    0
+  );
 
   const [selectedCategory, setSelectedCategory] = useState('Light');
   const categories = Object.keys(defaultItems);
@@ -338,6 +390,10 @@ export default function DecorationSection() {
           </TouchableOpacity>
         ))}
       </ScrollView>
+      {/* Decoration Total Display */}
+     <View style={styles.totalContainer}>
+      <Text style={styles.totalText}>Decoration Total: ${decorationTotal.toFixed(2)}</Text>
+    </View>
       <View style={styles.cardsContainer}>
       <FlatList
         data={defaultItems[selectedCategory]}
@@ -347,7 +403,7 @@ export default function DecorationSection() {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={[styles.card, { width: cardWidth }]}
-            onPress={() => navigation.navigate('ItemCartScreen', { item })}
+onPress={() => navigation.navigate('ItemCartScreen', { item, category: 'decoration' })}
           >
             <Image source={{ uri: item.image }} style={styles.image} />
             <Text style={styles.title}>{item.name}</Text>
@@ -448,4 +504,19 @@ categoryText: {
     fontWeight: '700',
     marginTop: 6,
   },
+//   totalContainer: {
+//   padding: 12,
+//   backgroundColor: '#e0d4f7',
+//   borderRadius: 10,
+//   marginHorizontal: 10,
+//   marginBottom: 10,
+//   alignItems: 'center',
+// },
+
+// totalText: {
+//   fontSize: 20,
+//   fontWeight: '700',
+//   color: '#4a148c',
+// },
+
 });
