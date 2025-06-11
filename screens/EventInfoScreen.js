@@ -18,6 +18,7 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import MapView, { Marker } from 'react-native-maps';
 import StepIndicator from 'react-native-step-indicator';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { useBooking } from './BookingContextScreen';
 
 const eventTypes = [
   { label: '🎂 Birthday', value: '🎂 Birthday' },
@@ -36,6 +37,7 @@ const locationTypes = [
 
 const EventInfoScreen = () => {
   const navigation = useNavigation();
+  const { updateBooking } = useBooking();
 
   const [eventType, setEventType] = useState('');
   const [customEventName, setCustomEventName] = useState('');
@@ -139,21 +141,24 @@ const EventInfoScreen = () => {
   };
 
   const handleNext = () => {
-    if (!eventType || !selectedLocation || !locationType) {
-      Alert.alert('Missing Fields', 'Please complete all fields and select a location.');
-      return;
-    }
+  if (!eventType || !selectedLocation || !locationType) {
+    Alert.alert('Missing Fields', 'Please complete all fields and select a location.');
+    return;
+  }
 
-    const finalEventType = eventType === '🎉 Other' ? customEventName : eventType;
-    const finalLocationName = locationType === 'Other' ? customLocationName : locationType;
+  const finalEventType = eventType === '🎉 Other' ? customEventName : eventType;
+  const finalLocationName = locationType === 'Other' ? customLocationName : locationType;
 
-    navigation.navigate('OptionsScreen', {
-      eventType: finalEventType,
-      eventDateTime: date.toISOString(),
-      eventLocation: selectedLocation,
-      locationName: finalLocationName,
-    });
-  };
+  updateBooking({
+    eventType: finalEventType,
+    eventDateTime: date.toISOString(),
+    eventLocation: selectedLocation,
+    locationName: finalLocationName,
+  });
+
+  navigation.navigate('OptionsScreen');
+};
+
 
   const renderContent = () => (
     <View style={styles.content}>

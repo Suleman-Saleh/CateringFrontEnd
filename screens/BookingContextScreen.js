@@ -5,7 +5,6 @@ const BookingContext = createContext();
 
 // Provider Component
 export const BookingProvider = ({ children }) => {
-  
   const [booking, setBooking] = useState({
     eventType: '',
     eventDateTime: '',
@@ -27,21 +26,61 @@ export const BookingProvider = ({ children }) => {
   };
 
   // Add item to cart (increment quantity if exists)
-  const addToCart = (item, quantity) => {
+  const addToCart = (newItem) => {
+  const itemWithQuantity = {
+    ...newItem,
+    quantity: newItem.quantity ?? 1, // fallback to 1 if undefined
+  };
+
+  setBooking((prev) => {
+    const existingItemIndex = prev.cartItems.findIndex(
+      (item) => item.id === itemWithQuantity.id
+    );
+
+    let updatedCart;
+    if (existingItemIndex !== -1) {
+      updatedCart = [...prev.cartItems];
+      updatedCart[existingItemIndex].quantity += itemWithQuantity.quantity;
+    } else {
+      updatedCart = [...prev.cartItems, itemWithQuantity];
+    }
+
+    return { ...prev, cartItems: updatedCart };
+  });
+};
+
+
+  // Remove item from cart
+  const removeFromCart = (itemId) => {
+    setBooking((prev) => ({
+      ...prev,
+      cartItems: prev.cartItems.filter(item => item.id !== itemId),
+    }));
+  };
+
+  // Update quantity of an item in cart
+  const updateCartQuantity = (itemId, quantity) => {
     setBooking((prev) => {
-      const existingIndex = prev.cartItems.findIndex(ci => ci.id === item.id);
-      let newCart;
-      if (existingIndex !== -1) {
-        newCart = [...prev.cartItems];
-        const existingItem = newCart[existingIndex];
-        newCart[existingIndex] = {
-          ...existingItem,
-          quantity: existingItem.quantity + quantity,
-        };
-      } else {
-        newCart = [...prev.cartItems, { ...item, quantity }];
-      }
-      return { ...prev, cartItems: newCart };
+      const updatedCart = prev.cartItems.map(item =>
+        item.id === itemId ? { ...item, quantity } : item
+      );
+      return { ...prev, cartItems: updatedCart };
+    });
+  };
+
+  // Reset booking to initial state (e.g., after successful booking)
+  const resetBooking = () => {
+    setBooking({
+      eventType: '',
+      eventDateTime: '',
+      eventLocation: null,
+      furniture: null,
+      utensils: null,
+      decoration: null,
+      cartItems: [],
+      visitedFurniture: false,
+      visitedUtensils: false,
+      visitedDecoration: false,
     });
   };
 
@@ -49,8 +88,11 @@ export const BookingProvider = ({ children }) => {
   const isBookingComplete = () =>
     booking.furniture && booking.utensils && booking.decoration;
 
-  // Check if all categories have been visited once
-  const allVisited = booking.visitedFurniture && booking.visitedUtensils && booking.visitedDecoration;
+  // Check if all categories have been visited
+  const allVisited =
+    booking.visitedFurniture &&
+    booking.visitedUtensils &&
+    booking.visitedDecoration;
 
   return (
     <BookingContext.Provider
@@ -58,6 +100,9 @@ export const BookingProvider = ({ children }) => {
         booking,
         updateBooking,
         addToCart,
+        removeFromCart,
+        updateCartQuantity,
+        resetBooking,
         isBookingComplete,
         allVisited,
       }}

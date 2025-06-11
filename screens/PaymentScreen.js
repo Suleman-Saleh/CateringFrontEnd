@@ -123,42 +123,42 @@ const PaymentScreen = () => {
       style={styles.flex}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-       <StepIndicator
-  customStyles={customStyles}
-  currentPosition={3}
-  labels={labels}
-  stepCount={4}
-  renderStepIndicator={({ position, stepStatus }) => {
-    const iconName = icons[position];
-    const color =
-      stepStatus === 'current'
-        ? '#6A1B9A'
-        : stepStatus === 'finished'
-        ? '#fff'
-        : '#D1C4E9';
-    const bgColor =
-      stepStatus === 'current'
-        ? '#fff'
-        : stepStatus === 'finished'
-        ? '#6A1B9A'
-        : '#fff';
+        <StepIndicator
+          customStyles={customStyles}
+          currentPosition={3}
+          labels={labels}
+          stepCount={4}
+          renderStepIndicator={({ position, stepStatus }) => {
+            const iconName = icons[position];
+            const color =
+              stepStatus === 'current'
+                ? '#6A1B9A'
+                : stepStatus === 'finished'
+                  ? '#fff'
+                  : '#D1C4E9';
+            const bgColor =
+              stepStatus === 'current'
+                ? '#fff'
+                : stepStatus === 'finished'
+                  ? '#6A1B9A'
+                  : '#fff';
 
-    return (
-      <View
-        style={{
-          backgroundColor: bgColor,
-          width: 30,
-          height: 30,
-          borderRadius: 15,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <Icon name={iconName} size={16} color={color} />
-      </View>
-    );
-  }}
-/>
+            return (
+              <View
+                style={{
+                  backgroundColor: bgColor,
+                  width: 30,
+                  height: 30,
+                  borderRadius: 15,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Icon name={iconName} size={16} color={color} />
+              </View>
+            );
+          }}
+        />
 
         <View style={styles.container}>
           <Text style={styles.title}>Payment Details</Text>
@@ -169,7 +169,12 @@ const PaymentScreen = () => {
             keyboardType="number-pad"
             maxLength={16}
             value={cardNumber}
-            onChangeText={setCardNumber}
+            onChangeText={(text) => {
+              const cleaned = text.replace(/\D+/g, '').slice(0, 16); // Only digits, max 16
+              const formatted = cleaned.match(/.{1,4}/g)?.join(' ') || '';
+              setCardNumber(formatted);
+            }}
+
             placeholder="1234 5678 9012 3456"
             placeholderTextColor="#bbb"
           />
@@ -188,9 +193,18 @@ const PaymentScreen = () => {
               <Text style={styles.label}>Expiry Date</Text>
               <TextInput
                 style={styles.input}
+                keyboardType="number-pad"
                 placeholder="MM/YY"
                 value={expiryDate}
-                onChangeText={setExpiryDate}
+                onChangeText={(text) => {
+                  const cleaned = text.replace(/\D+/g, '').slice(0, 4); // Only digits, max 4
+                  let formatted = cleaned;
+                  if (cleaned.length >= 3) {
+                    formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2)}`;
+                  }
+                  setExpiryDate(formatted);
+                }}
+
                 maxLength={5}
                 placeholderTextColor="#bbb"
               />
