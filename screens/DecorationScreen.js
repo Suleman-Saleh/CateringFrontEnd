@@ -390,10 +390,10 @@ export default function DecorationSection() {
           </TouchableOpacity>
         ))}
       </ScrollView>
-      {/* Decoration Total Display */}
+      {/* Decoration Total Display
      <View style={styles.totalContainer}>
       <Text style={styles.totalText}>Decoration Total: ${decorationTotal.toFixed(2)}</Text>
-    </View>
+    </View> */}
       <View style={styles.cardsContainer}>
       <FlatList
         data={defaultItems[selectedCategory]}
@@ -408,7 +408,7 @@ onPress={() => navigation.navigate('ItemCartScreen', { item, category: 'decorati
             <Image source={{ uri: item.image }} style={styles.image} />
             <Text style={styles.title}>{item.name}</Text>
             <Text style={styles.subtitle}>{item.material}</Text>
-            <Text style={styles.price}>{item.price}</Text>
+            <Text style={styles.price}>${item.price}</Text>
           </TouchableOpacity>
         )}
       />
@@ -504,19 +504,19 @@ categoryText: {
     fontWeight: '700',
     marginTop: 6,
   },
-//   totalContainer: {
-//   padding: 12,
-//   backgroundColor: '#e0d4f7',
-//   borderRadius: 10,
-//   marginHorizontal: 10,
-//   marginBottom: 10,
-//   alignItems: 'center',
-// },
+  totalContainer: {
+  padding: 12,
+  backgroundColor: '#e0d4f7',
+  borderRadius: 10,
+  marginHorizontal: 10,
+  marginBottom: 10,
+  alignItems: 'center',
+},
 
-// totalText: {
-//   fontSize: 20,
-//   fontWeight: '700',
-//   color: '#4a148c',
-// },
+totalText: {
+  fontSize: 20,
+  fontWeight: '700',
+  color: '#4a148c',
+},
 
 });

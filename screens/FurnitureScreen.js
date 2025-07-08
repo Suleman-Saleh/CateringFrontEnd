@@ -79,7 +79,7 @@ export default function FurnitureScreen() {
             <Image source={{ uri: item.image }} style={styles.image} />
             <Text style={styles.title}>{item.name}</Text>
             <Text style={styles.subtitle}>{item.material}</Text>
-            <Text style={styles.price}>{item.price}</Text>
+            <Text style={styles.price}>${item.price}</Text>
           </TouchableOpacity>
         )}
       />

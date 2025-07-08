@@ -163,18 +163,17 @@ const PaymentScreen = () => {
         <View style={styles.container}>
           <Text style={styles.title}>Payment Details</Text>
 
-          <Text style={styles.label}>Card Number</Text>
+         <Text style={styles.label}>Card Number</Text>
           <TextInput
             style={styles.input}
             keyboardType="number-pad"
-            maxLength={16}
+            maxLength={19}
             value={cardNumber}
             onChangeText={(text) => {
-              const cleaned = text.replace(/\D+/g, '').slice(0, 16); // Only digits, max 16
+              const cleaned = text.replace(/\D+/g, '').slice(0, 16); 
               const formatted = cleaned.match(/.{1,4}/g)?.join(' ') || '';
               setCardNumber(formatted);
             }}
-
             placeholder="1234 5678 9012 3456"
             placeholderTextColor="#bbb"
           />

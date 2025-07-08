@@ -47,6 +47,8 @@ export default function UtensilScreen() {
   useEffect(() => {
     updateBooking({ visitedFurniture: true });
   }, []);
+  
+  
 
   const [selectedCategory, setSelectedCategory] = useState('Cups');
   const categories = Object.keys(utensilItems);
@@ -88,7 +90,7 @@ export default function UtensilScreen() {
             <Image source={{ uri: item.image }} style={styles.image} />
             <Text style={styles.title}>{item.name}</Text>
             <Text style={styles.subtitle}>{item.material}</Text>
-            <Text style={styles.price}>{item.price}</Text>
+            <Text style={styles.price}>${item.price}</Text>
           </TouchableOpacity>
         )}
       />
