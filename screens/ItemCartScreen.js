@@ -14,12 +14,20 @@ import {
 import { useBooking } from './BookingContextScreen'; // adjust import path
 
 export default function ItemCartScreen({ route, navigation }) {
-  const { item } = route.params;
+  // --- FIX START ---
+  // Destructure itemDetails and itemCategory from route.params
+  const { itemDetails, itemCategory } = route.params;
+
+  // Use itemDetails as the main item object
+  const item = itemDetails;
+  // --- FIX END ---
+
   const [quantity, setQuantity] = useState('1');
   const { addToCart } = useBooking();
 
+  // Ensure price is safely accessed from the item object
   const qty = Math.max(0, parseInt(quantity) || 0);
-  const price = Number(item.price) || 0;
+  const price = Number(item?.price) || 0; // Added optional chaining for safety
   const totalPrice = (qty * price).toFixed(2);
 
   const handleAddToCart = () => {
@@ -27,11 +35,24 @@ export default function ItemCartScreen({ route, navigation }) {
       Alert.alert('Invalid Quantity', 'Please enter a quantity greater than zero.');
       return;
     }
-    addToCart({ ...item, quantity: qty });
+    // Pass the full itemDetails object to addToCart, along with the quantity
+    addToCart({ ...item, quantity: qty, category: itemCategory }); // Also pass the category
 
     Alert.alert('Added to Cart', `${qty} x ${item.name} added to cart!\nTotal: $${totalPrice}`);
     navigation.goBack();
   };
+
+  // Add a defensive check in case itemDetails is somehow missing
+  if (!item) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.errorText}>Item details not found.</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={() => navigation.goBack()}>
+          <Text style={styles.retryButtonText}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -161,5 +182,28 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     textAlign: 'center',
+  },
+  // Added styles for error/missing item display
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f6f8fa',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 18,
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: '#6A1B9A',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  retryButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

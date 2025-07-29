@@ -183,7 +183,7 @@ const PaymentScreen = () => {
             style={styles.input}
             value={cardHolder}
             onChangeText={setCardHolder}
-            placeholder="John Doe"
+            placeholder="Muhammad Suleman"
             placeholderTextColor="#bbb"
           />
 

@@ -1,6 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
-
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Dimensions,
   FlatList,
@@ -10,51 +9,138 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ActivityIndicator,
+  Alert
 } from 'react-native';
-import { useBooking } from './BookingContextScreen'; // adjust import path
+import { useBooking } from './BookingContextScreen';
 
-const utensilItems = {
-  Cups: [
-    { id: 'c1', name: 'Ceramic Cup', material: 'Ceramic', price: 5, image: 'https://images.unsplash.com/photo-1556912167-f556f1f39f5b' },
-    { id: 'c2', name: 'Glass Cup', material: 'Glass', price: 4, image: 'https://images.unsplash.com/photo-1609515152060-cf5f8577e06d' },
-    { id: 'c3', name: 'Travel Mug', material: 'Stainless Steel', price: 12, image: 'https://images.unsplash.com/photo-1598515213690-dab758b40b7c' },
-    { id: 'c4', name: 'Espresso Cup', material: 'Porcelain', price: 6, image: 'https://images.unsplash.com/photo-1544739313-e9e8c5ee0fa4' },
-  ],
-  Spoons: [
-    { id: 's1', name: 'Teaspoon', material: 'Silver', price: 3, image: 'https://images.unsplash.com/photo-1598515213690-dab758b40b7c' },
-    { id: 's2', name: 'Soup Spoon', material: 'Stainless Steel', price: 4, image: 'https://images.unsplash.com/photo-1534939561126-855b8675edd7' },
-    { id: 's3', name: 'Serving Spoon', material: 'Wooden', price: 5, image: 'https://images.unsplash.com/photo-1579710758512-3b6a6c3e5f28' },
-  ],
-  Forks: [
-    { id: 'f1', name: 'Dinner Fork', material: 'Stainless Steel', price: 4, image: 'https://images.unsplash.com/photo-1572441710224-53455fa38e17' },
-    { id: 'f2', name: 'Salad Fork', material: 'Silver', price: 3, image: 'https://images.unsplash.com/photo-1572441710224-53455fa38e17' },
-    { id: 'f3', name: 'Dessert Fork', material: 'Stainless Steel', price: 4, image: 'https://images.unsplash.com/photo-1545226584-59670107400d' },
-  ],
-  Bowls: [
-    { id: 'b1', name: 'Soup Bowl', material: 'Ceramic', price: 7, image: 'https://images.unsplash.com/photo-1575330396789-89f6d82ad645' },
-    { id: 'b2', name: 'Salad Bowl', material: 'Wooden', price: 10, image: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352' },
-    { id: 'b3', name: 'Mixing Bowl', material: 'Stainless Steel', price: 8, image: 'https://images.unsplash.com/photo-1561047029-3000eacb3f5d' },
-  ],
-  Plates: [
-    { id: 'p1', name: 'Dinner Plate', material: 'Porcelain', price: 9, image: 'https://images.unsplash.com/photo-1627480393967-f24f4f88ef5b' },
-    { id: 'p2', name: 'Side Plate', material: 'Ceramic', price: 6, image: 'https://images.unsplash.com/photo-1601297159644-50b1e0efef4d' },
-    { id: 'p3', name: 'Charging Plate', material: 'Glass', price: 12, image: 'https://images.unsplash.com/photo-1594940837626-c9b104046793' },
-  ],
-};
+const STRAPI_URL = 'http://localhost:1337'; // Ensure this matches your Strapi URL
 
 export default function UtensilScreen() {
-  const { updateBooking } = useBooking();
-  useEffect(() => {
-    updateBooking({ visitedFurniture: true });
-  }, []);
-  
-  
-
-  const [selectedCategory, setSelectedCategory] = useState('Cups');
-  const categories = Object.keys(utensilItems);
+  const { updateBooking, booking } = useBooking();
   const navigation = useNavigation();
   const { width } = Dimensions.get('window');
   const cardWidth = (width - 48) / 2;
+
+  const [utensilItemsFromApi, setUtensilItemsFromApi] = useState({});
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Assuming you have `visitedUtensils` in your BookingContextScreen
+    // This marks that the utensil selection screen has been visited.
+    if (!booking.visitedUtensils) {
+      updateBooking({ visitedUtensils: true });
+    }
+  }, [booking.visitedUtensils, updateBooking]);
+
+  useEffect(() => {
+    const fetchUtensilItems = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        // Correct API endpoint and populate parameter for 'UtensilImage'
+        const response = await fetch(`${STRAPI_URL}/api/utensil-items?populate=UtensilImage`);
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Strapi API Error Response:", errorData);
+          throw new Error(errorData.error?.message || `Failed to fetch utensil items: ${response.status} ${response.statusText}`);
+        }
+        const apiResponse = await response.json();
+        console.log("Fetched utensil items raw data:", JSON.stringify(apiResponse.data, null, 2));
+
+        const groupedItems = apiResponse.data.reduce((acc, item) => {
+          // Access fields directly from 'item' using their exact Strapi names (case-sensitive)
+          const category = item.Category; // Directly from Strapi data
+          const name = item.Name; // Directly from Strapi data
+          const style = item.Style; // Directly from Strapi data
+          const price = item.PricePerGuest; // Directly from Strapi data, now PricePerGuest
+          const utensilImage = item.UtensilImage; // Directly from Strapi data
+
+          if (!category) {
+            console.warn(`Item ${item.id} is missing a category field. Skipping this item.`);
+            return acc;
+          }
+
+          if (!acc[category]) {
+            acc[category] = [];
+          }
+
+          let imageUrl = 'https://via.placeholder.com/150'; // Default placeholder
+
+          // Handle 'Multiple Media' field: take the first image if available
+          const firstImage = utensilImage?.[0]; // Access the first object in the array if it exists
+
+          if (firstImage && firstImage.url) {
+            imageUrl = `${STRAPI_URL}${firstImage.url}`;
+          } else {
+            console.warn(`No valid image URL found for item ID: ${item.id}, Name: ${name}. UtensilImage data:`, utensilImage);
+          }
+
+          acc[category].push({
+            id: item.id.toString(), // Ensure ID is a string for keyExtractor
+            name: name,
+            material: style, // Map Strapi's 'Style' to 'material' for consistency with subtitle display
+            price: price,
+            category: category,
+            image: imageUrl,
+          });
+          return acc;
+        }, {});
+
+        setUtensilItemsFromApi(groupedItems);
+
+        // Set initial selected category after data is fetched
+        if (Object.keys(groupedItems).length > 0 && !selectedCategory) {
+          setSelectedCategory(Object.keys(groupedItems)[0]);
+        }
+      } catch (err) {
+        console.error("Error fetching utensil items:", err);
+        setError(err.message);
+        Alert.alert('Error', `Failed to load utensil items: ${err.message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUtensilItems();
+  }, [selectedCategory]);
+
+  const categories = Object.keys(utensilItemsFromApi);
+
+  const handleItemPress = useCallback((item) => {
+    navigation.navigate('ItemCartScreen', { itemDetails: item, itemCategory: 'utensil' });
+  }, [navigation]);
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#6A1B9A" />
+        <Text style={styles.loadingText}>Loading Utensil Items...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.errorText}>Error: {error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={() => fetchUtensilItems()}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (categories.length === 0 && !loading) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.noDataText}>No utensil items found. Please add items in Strapi.</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -77,40 +163,39 @@ export default function UtensilScreen() {
         ))}
       </ScrollView>
       <View style={styles.cardsContainer}>
-      <FlatList
-        data={utensilItems[selectedCategory]}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.listContainer}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[styles.card, { width: cardWidth }]}
-            onPress={() => navigation.navigate('ItemCartScreen', { item })}
-          >
-            <Image source={{ uri: item.image }} style={styles.image} />
-            <Text style={styles.title}>{item.name}</Text>
-            <Text style={styles.subtitle}>{item.material}</Text>
-            <Text style={styles.price}>${item.price}</Text>
-          </TouchableOpacity>
-        )}
-      />
-    </View>
+        <FlatList
+          data={utensilItemsFromApi[selectedCategory] || []}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          contentContainerStyle={styles.listContainer}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={[styles.card, { width: cardWidth }]}
+              onPress={() => handleItemPress(item)}
+            >
+              <Image source={{ uri: item.image }} style={styles.image} />
+              <Text style={styles.title}>{item.name}</Text>
+              {/* This will now display the 'Style' value from Strapi, mapped to 'material' */}
+              <Text style={styles.subtitle}>{item.material}</Text>
+              <Text style={styles.price}>${item.price}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   categoryContainer: {
-  paddingVertical: 1,
-  backgroundColor: '#ffffff',
-  paddingBottom: 3, // Reduced to fit more space for FlatList
-},
-
-cardsContainer: {
-  flex: 75,
-  paddingHorizontal: 1,
-},
-
+    paddingVertical: 1,
+    backgroundColor: '#ffffff',
+    paddingBottom: 3,
+  },
+  cardsContainer: {
+    flex: 1,
+    paddingHorizontal: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
@@ -121,28 +206,27 @@ cardsContainer: {
     flexDirection: 'row',
     paddingVertical: 8,
     paddingHorizontal: 4,
-    marginBottom: 8, // Reduced to fit more space for FlatList
+    marginBottom: 8,
   },
-
   categoryButtonActive: {
     backgroundColor: '#6A1B9A',
   },
-categoryButton: {
-  paddingHorizontal: 24, // increased from 20
-  paddingVertical: 14,   // increased from 10
-  backgroundColor: '#e5e7eb',
-  borderRadius: 30,      // increased from 25
-  marginRight: 12,       // slightly increased spacing
-  minWidth: 120, 
-  minHeight: 50,        // increased from 100
-  alignItems: 'center',
-},
-categoryText: {
-  fontSize: 16,          // increased from 14
-  fontWeight: '600',
-  color: '#1f2937',
-},
-
+  categoryButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 30,
+    marginRight: 12,
+    minWidth: 120,
+    minHeight: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  categoryText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
   categoryTextActive: {
     color: '#ffffff',
     fontWeight: '700',
@@ -185,5 +269,38 @@ categoryText: {
     color: '#10b981',
     fontWeight: '700',
     marginTop: 6,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#333',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: '#6A1B9A',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  retryButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  noDataText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginHorizontal: 20,
   },
 });

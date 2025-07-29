@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Dimensions,
   FlatList,
@@ -9,41 +9,138 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ActivityIndicator, // Added for loading state
+  Alert // Added for error alerts
 } from 'react-native';
 import { useBooking } from './BookingContextScreen';
 
-const furnitureItems = {
-  Chairs: [
-    { id: 'ch1', name: 'Folding Chair', material: 'Metal', price: 10, image: 'https://images.unsplash.com/photo-1519710164239-da123dc03ef4' },
-    { id: 'ch2', name: 'Banquet Chair', material: 'Plastic', price: 12, image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc' },
-    { id: 'ch3', name: 'Lounge Chair', material: 'Leather', price: 30, image: 'https://images.unsplash.com/photo-1505692794403-82ed43c318f7' },
-  ],
-  Tables: [
-    { id: 'tb1', name: 'Round Table', material: 'Wood', price: 50, image: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36' },
-    { id: 'tb2', name: 'Banquet Table', material: 'Plastic', price:40, image: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d' },
-    { id: 'tb3', name: 'Cocktail Table', material: 'Metal', price: 45, image: 'https://images.unsplash.com/photo-1519710164239-da123dc03ef4' },
-  ],
-  Lounging: [
-    { id: 'lg1', name: 'Sofa', material: 'Fabric', price: 100, image: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36' },
-    { id: 'lg2', name: 'Ottoman', material: 'Leather', price: 60, image: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d' },
-  ],
-  StageFurniture: [
-    { id: 'st1', name: 'Podium', material: 'Wood', price: 150, image: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8' },
-    { id: 'st2', name: 'Stage Platform', material: 'Metal/Wood', price: 300, image: 'https://images.unsplash.com/photo-1505692794403-82ed43c318f7' },
-  ],
-};
+const STRAPI_URL = 'http://localhost:1337'; // Your confirmed Strapi URL
 
 export default function FurnitureScreen() {
-  const { updateBooking } = useBooking();
-  useEffect(() => {
-    updateBooking({ visitedFurniture: true });
-  }, []);
-
-  const [selectedCategory, setSelectedCategory] = useState('Chairs');
-  const categories = Object.keys(furnitureItems);
+  const { updateBooking, booking } = useBooking();
   const navigation = useNavigation();
   const { width } = Dimensions.get('window');
   const cardWidth = (width - 48) / 2;
+
+  const [furnitureItemsFromApi, setFurnitureItemsFromApi] = useState({});
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!booking.visitedFurniture) {
+      updateBooking({ visitedFurniture: true });
+    }
+  }, [booking.visitedFurniture, updateBooking]);
+
+  useEffect(() => {
+    const fetchFurnitureItems = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch furniture items, populate the FurnitureImage field
+        const response = await fetch(`${STRAPI_URL}/api/furniture-items?populate=FurnitureImage`);
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Strapi API Error Response:", errorData);
+          throw new Error(errorData.error?.message || `Failed to fetch furniture items: ${response.status} ${response.statusText}`);
+        }
+
+        const apiResponse = await response.json();
+        console.log("Fetched furniture items raw data:", JSON.stringify(apiResponse.data, null, 2));
+
+        const groupedItems = apiResponse.data.reduce((acc, item) => {
+          // Access fields directly from 'item' using their exact Strapi names (case-sensitive)
+          const category = item.Category; // Directly from Strapi data
+          const name = item.Name; // Directly from Strapi data
+          const style = item.Style; // Directly from Strapi data
+          const price = item.PricePerUnit; // Directly from Strapi data
+          const furnitureImage = item.FurnitureImage; // Directly from Strapi data
+
+          if (!category) {
+            console.warn(`Item ${item.id} is missing a category field. Skipping this item.`);
+            return acc;
+          }
+
+          if (!acc[category]) {
+            acc[category] = [];
+          }
+
+          let imageUrl = 'https://via.placeholder.com/150'; // Default placeholder
+
+          // Handle 'Multiple Media' field: take the first image if available
+          const firstImage = furnitureImage?.[0]; // Access the first object in the array if it exists
+
+          if (firstImage && firstImage.url) {
+            imageUrl = `${STRAPI_URL}${firstImage.url}`;
+          } else {
+            console.warn(`No valid image URL found for item ID: ${item.id}, Name: ${name}. FurnitureImage data:`, furnitureImage);
+          }
+
+          acc[category].push({
+            id: item.id.toString(), // Ensure ID is a string for keyExtractor
+            name: name,
+            material: style, // Map Strapi's 'Style' to 'material' for consistency with subtitle display
+            price: price,
+            category: category,
+            image: imageUrl,
+          });
+          return acc;
+        }, {});
+
+        setFurnitureItemsFromApi(groupedItems);
+
+        // Set initial selected category after data is fetched
+        if (Object.keys(groupedItems).length > 0 && !selectedCategory) {
+          setSelectedCategory(Object.keys(groupedItems)[0]);
+        }
+      } catch (err) {
+        console.error("Error fetching furniture items:", err);
+        setError(err.message);
+        Alert.alert('Error', `Failed to load furniture items: ${err.message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFurnitureItems();
+  }, [selectedCategory]);
+
+  const categories = Object.keys(furnitureItemsFromApi);
+
+  const handleItemPress = useCallback((item) => {
+    navigation.navigate('ItemCartScreen', { itemDetails: item, itemCategory: 'furniture' });
+  }, [navigation]);
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#6A1B9A" />
+        <Text style={styles.loadingText}>Loading Furniture Items...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.errorText}>Error: {error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={() => fetchFurnitureItems()}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (categories.length === 0 && !loading) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.noDataText}>No furniture items found. Please add items in Strapi.</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -66,40 +163,39 @@ export default function FurnitureScreen() {
         ))}
       </ScrollView>
       <View style={styles.cardsContainer}>
-      <FlatList
-        data={furnitureItems[selectedCategory]}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.listContainer}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[styles.card, { width: cardWidth }]}
-            onPress={() => navigation.navigate('ItemCartScreen', { item })}
-          >
-            <Image source={{ uri: item.image }} style={styles.image} />
-            <Text style={styles.title}>{item.name}</Text>
-            <Text style={styles.subtitle}>{item.material}</Text>
-            <Text style={styles.price}>${item.price}</Text>
-          </TouchableOpacity>
-        )}
-      />
-    </View>
+        <FlatList
+          data={furnitureItemsFromApi[selectedCategory] || []}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          contentContainerStyle={styles.listContainer}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={[styles.card, { width: cardWidth }]}
+              onPress={() => handleItemPress(item)}
+            >
+              <Image source={{ uri: item.image }} style={styles.image} />
+              <Text style={styles.title}>{item.name}</Text>
+              {/* This will now display the 'Style' value from Strapi, mapped to 'material' */}
+              <Text style={styles.subtitle}>{item.material}</Text>
+              <Text style={styles.price}>${item.price}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   categoryContainer: {
-  paddingVertical: 1,
-  backgroundColor: '#ffffff',
-  paddingBottom: 3, // Reduced to fit more space for FlatList
-},
-
-cardsContainer: {
-  flex: 75,
-  paddingHorizontal: 1,
-},
-
+    paddingVertical: 1,
+    backgroundColor: '#ffffff',
+    paddingBottom: 3,
+  },
+  cardsContainer: {
+    flex: 1,
+    paddingHorizontal: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
@@ -110,28 +206,27 @@ cardsContainer: {
     flexDirection: 'row',
     paddingVertical: 8,
     paddingHorizontal: 4,
-    marginBottom: 8, // Reduced to fit more space for FlatList
+    marginBottom: 8,
   },
-
   categoryButtonActive: {
     backgroundColor: '#6A1B9A',
   },
-categoryButton: {
-  paddingHorizontal: 24, // increased from 20
-  paddingVertical: 14,   // increased from 10
-  backgroundColor: '#e5e7eb',
-  borderRadius: 30,      // increased from 25
-  marginRight: 12,       // slightly increased spacing
-  minWidth: 120, 
-  minHeight: 50,        // increased from 100
-  alignItems: 'center',
-},
-categoryText: {
-  fontSize: 16,          // increased from 14
-  fontWeight: '600',
-  color: '#1f2937',
-},
-
+  categoryButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 30,
+    marginRight: 12,
+    minWidth: 120,
+    minHeight: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  categoryText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
   categoryTextActive: {
     color: '#ffffff',
     fontWeight: '700',
@@ -174,5 +269,38 @@ categoryText: {
     color: '#10b981',
     fontWeight: '700',
     marginTop: 6,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#333',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: '#6A1B9A',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  retryButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  noDataText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginHorizontal: 20,
   },
 });
