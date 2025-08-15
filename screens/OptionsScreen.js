@@ -1,35 +1,36 @@
 import React, { useState } from 'react';
 import {
+  Dimensions,
   LayoutAnimation,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   UIManager,
   View,
 } from 'react-native';
-
 import StepIndicator from 'react-native-step-indicator';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useBooking } from './BookingContextScreen';
-import DecorationSection from './DecorationScreen';
+import DecorationScreen from './DecorationScreen';
 import FurnitureScreen from './FurnitureScreen';
 import UtensilScreen from './UtensilScreen';
 
+// Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+const { width } = Dimensions.get('window');
+
 export default function OptionsScreen({ navigation }) {
   const [selectedTab, setSelectedTab] = useState('Decoration');
-  const { updateBooking , booking } = useBooking();
+  const { updateBooking, booking } = useBooking();
   const { visitedDecoration, visitedUtensils, visitedFurniture, cartItems } = booking;
 
   const canProceed =
-    visitedDecoration &&
-    visitedUtensils &&
-    visitedFurniture &&
-    cartItems.length > 0;
+    visitedDecoration && visitedUtensils && visitedFurniture && cartItems.length > 0;
 
   const tabs = [
     { key: 'Decoration', icon: 'paint-brush' },
@@ -38,18 +39,22 @@ export default function OptionsScreen({ navigation }) {
   ];
 
   const labels = ['Event Info', 'Services', 'Summary', 'Payment'];
-  const icons = ['calendar', 'paint-brush', 'list-alt', 'credit-card']; // FontAwesome icon names
+  const icons = ['calendar', 'paint-brush', 'list-alt', 'credit-card'];
+
+
+
+
 
   const customStyles = {
     stepIndicatorSize: 30,
     currentStepIndicatorSize: 40,
     separatorStrokeWidth: 2,
-    currentStepStrokeWidth: 3,
-    stepStrokeCurrentColor: '#6A1B9A',
-    stepStrokeWidth: 3,
-    stepStrokeFinishedColor: '#6A1B9A',
-    stepStrokeUnFinishedColor: '#D1C4E9',
-    separatorFinishedColor: '#6A1B9A',
+    currentStepStrokeWidth: 5,
+    stepStrokeCurrentColor: '#8852a9ff',
+    stepStrokeWidth: 5,
+    stepStrokeFinishedColor: 'white',
+    stepStrokeUnFinishedColor: 'grey',
+    separatorFinishedColor: 'white',
     separatorUnFinishedColor: '#D1C4E9',
     stepIndicatorFinishedColor: '#6A1B9A',
     stepIndicatorUnFinishedColor: '#FFFFFF',
@@ -59,99 +64,107 @@ export default function OptionsScreen({ navigation }) {
     stepIndicatorLabelCurrentColor: '#6A1B9A',
     stepIndicatorLabelFinishedColor: '#FFFFFF',
     stepIndicatorLabelUnFinishedColor: '#D1C4E9',
-    labelColor: '#999999',
-    labelSize: 13,
-    currentStepLabelColor: '#6A1B9A',
+    labelColor: 'grey',
+    labelSize: 14,
+    finishedStepLabelColor: 'white',
+    currentStepLabelColor: 'white',
   };
+
+  const handleTabPress = (key) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setSelectedTab(key);
+
+    if (key === 'Decoration' && !visitedDecoration) updateBooking({ visitedDecoration: true });
+    else if (key === 'Utensils' && !visitedUtensils) updateBooking({ visitedUtensils: true });
+    else if (key === 'Furniture' && !visitedFurniture) updateBooking({ visitedFurniture: true });
+  };
+
+  const renderCurrentTab = () => {
+    switch (selectedTab) {
+      case 'Decoration':
+        return <DecorationScreen navigation={navigation} />;
+      case 'Utensils':
+        return <UtensilScreen navigation={navigation} />;
+      case 'Furniture':
+        return <FurnitureScreen navigation={navigation} />;
+      default:
+        return null;
+    }
+  };
+
+  // Compact category tabs
+  const PillTabs = ({ categories, selected, onSelect }) => (
+    <View style={styles.pillContainer}>
+      {categories.map((cat) => {
+        const isSelected = selected === cat.key;
+        return (
+          <TouchableOpacity
+            key={cat.key}
+            onPress={() => onSelect(cat.key)}
+            style={[styles.pillTab, isSelected && styles.activePill]}
+          >
+            <Icon
+              name={cat.icon}
+              size={18} // slightly smaller
+              color={isSelected ? '#fff' : '#6B7280'}
+              style={{ marginRight: 6 }}
+            />
+            <Text style={[styles.pillText, isSelected && styles.activePillText]}>
+              {cat.key}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-     <StepIndicator
-  customStyles={customStyles}
-  currentPosition={1}
-  labels={labels}
-  stepCount={4}
-  renderStepIndicator={({ position, stepStatus }) => {
-    const iconName = icons[position];
-    const color =
-      stepStatus === 'current'
-        ? '#6A1B9A'
-        : stepStatus === 'finished'
-        ? '#fff'
-        : '#D1C4E9';
-    const bgColor =
-      stepStatus === 'current'
-        ? '#fff'
-        : stepStatus === 'finished'
-        ? '#6A1B9A'
-        : '#fff';
-
-    return (
-      <View
-        style={{
-          backgroundColor: bgColor,
-          width: 30,
-          height: 30,
-          borderRadius: 15,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <Icon name={iconName} size={16} color={color} />
-      </View>
-    );
-  }}
-/>
-
-
-      <View style={styles.tabsContainer}>
-        {tabs.map(({ key, icon }) => (
-          <TouchableOpacity
-            key={key}
-            style={[styles.tab, selectedTab === key && styles.activeTab]}
-           onPress={() => {
-  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-  setSelectedTab(key);
-
-  // Mark tab as visited
-  if (key === 'Decoration' && !visitedDecoration) {
-    updateBooking({ visitedDecoration: true });
-  } else if (key === 'Utensils' && !visitedUtensils) {
-    updateBooking({ visitedUtensils: true });
-  } else if (key === 'Furniture' && !visitedFurniture) {
-    updateBooking({ visitedFurniture: true });
-  }
-}}
-
-          >
-            <Icon
-              name={icon}
-              size={20}
-              color={selectedTab === key ? '#ffffff' : '#1e293b'}
-              style={{ marginBottom: 4 }}
-            />
-            <Text
-              style={[styles.tabText, selectedTab === key && styles.activeTabText]}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-            >
-              {key}
-            </Text>
-          </TouchableOpacity>
-        ))}
+      {/* Step Indicator */}
+      <View style={styles.stepWrapper}>
+        <StepIndicator
+          customStyles={customStyles}
+          currentPosition={1}
+          labels={labels}
+          stepCount={4}
+          renderStepIndicator={({ position, stepStatus }) => {
+            const iconName = icons[position];
+            const color =
+              stepStatus === 'current'
+                ? '#6A1B9A'
+                : stepStatus === 'finished'
+                ? '#fff'
+                : '#D1C4E9';
+            const bgColor =
+              stepStatus === 'current'
+                ? '#fff'
+                : stepStatus === 'finished'
+                ? '#6A1B9A'
+                : '#fff';
+            return (
+              <View style={[styles.stepIndicator, { backgroundColor: bgColor }]}>
+                <Icon name={iconName} size={16} color={color} />
+              </View>
+            );
+          }}
+        />
       </View>
 
+      {/* Category Tabs */}
+      <PillTabs categories={tabs} selected={selectedTab} onSelect={handleTabPress} />
+
+      {/* Progress Text */}
       <Text style={styles.progressText}>
         Step Progress:{' '}
         {[visitedDecoration, visitedUtensils, visitedFurniture].filter(Boolean).length}/3 Completed
       </Text>
 
-      <View style={styles.contentContainer}>
-        {selectedTab === 'Decoration' && <DecorationSection navigation={navigation} />}
-        {selectedTab === 'Utensils' && <UtensilScreen navigation={navigation} />}
-        {selectedTab === 'Furniture' && <FurnitureScreen navigation={navigation} />}
-      </View>
+      {/* Tab Content */}
+      <ScrollView style={styles.contentContainer}>
+        {renderCurrentTab()}
+      </ScrollView>
 
+      {/* Continue Button */}
       {canProceed && (
         <TouchableOpacity
           style={styles.proceedButton}
@@ -165,60 +178,67 @@ export default function OptionsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 12,
-    backgroundColor: '#ffffff',
-  },
-  tabsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-    borderRadius: 12,
+  container: { flex: 1, backgroundColor: 'white', padding: 5 },
+  stepWrapper: {
+    marginHorizontal: 10,
     marginBottom: 10,
-    paddingHorizontal: 6,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#6A1B9A',
+    padding: 10,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
   },
-  tab: {
-    flex: 1,
+  stepIndicator: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    borderRadius: 8,
-    marginHorizontal: 4,
-    backgroundColor: '#e5e7eb',
   },
-  activeTab: {
+  pillContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginHorizontal: 16,
+    margin: 8, // smaller gap
+  },
+  pillTab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14, // smaller pill width
+    paddingVertical: 10,    // smaller pill height
+    backgroundColor: '#E5E7EB',
+    borderRadius: 20,
+  },
+  activePill: {
     backgroundColor: '#6A1B9A',
   },
-  tabText: {
-    fontSize: 12,
-    fontWeight: '600',
-    textAlign: 'center',
-    color: '#1e293b',
+  pillText: {
+    color: '#374151',
+    fontWeight: '500',
+    fontSize: 14, // lighter text size
   },
-  activeTabText: {
-    color: '#ffffff',
+  activePillText: {
+    color: '#fff',
   },
-  progressText: {
-    textAlign: 'center',
-    marginVertical: 10,
-    fontSize: 14,
-    color: '#334155',
-  },
-  contentContainer: {
-    flex: 1,
-  },
+  progressText: { textAlign: 'center', marginVertical: 8, fontSize: 13, color: '#374151' },
+  contentContainer: { flex: 1, marginHorizontal: 16, marginBottom: 80 },
   proceedButton: {
+    position: 'absolute',
+    bottom: 20,
+    left: 16,
+    right: 16,
     padding: 16,
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: 'center',
-    marginTop: 20,
     backgroundColor: '#6A1B9A',
+    shadowColor: '#6A1B9A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 5,
   },
-  proceedText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  proceedText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });

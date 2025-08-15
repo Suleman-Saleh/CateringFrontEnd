@@ -1,18 +1,19 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
   Dimensions,
   FlatList,
   Image,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
-  ActivityIndicator,
-  Alert
+  View
 } from 'react-native';
 import { useBooking } from './BookingContextScreen';
-import { useNavigation } from '@react-navigation/native';
 
 const STRAPI_URL = 'http://localhost:1337';
 
@@ -125,7 +126,7 @@ export default function DecorationSection() {
     return (
       <View style={styles.centered}>
         <Text style={styles.errorText}>Error: {error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={() => fetchDecorationItems()}>
+        <TouchableOpacity style={styles.retryButton} onPress={("Decoration Button is Pressed")}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -168,6 +169,7 @@ export default function DecorationSection() {
           keyExtractor={(item) => item.id.toString()}
           numColumns={2}
           contentContainerStyle={styles.listContainer}
+                     showsVerticalScrollIndicator={false} 
           renderItem={({ item }) => (
             <TouchableOpacity
               style={[styles.card, { width: cardWidth }]}
@@ -184,122 +186,166 @@ export default function DecorationSection() {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
-    categoryContainer: {
-        paddingVertical: 1,
-        backgroundColor: '#ffffff',
-        paddingBottom: 3,
-      },
-      cardsContainer: {
-        flex: 1,
-        paddingHorizontal: 1,
-      },
-      container: {
-        flex: 1,
-        backgroundColor: '#ffffff',
-        paddingHorizontal: 2,
-        paddingTop: 10,
-      },
-      categoryScroll: {
-        flexDirection: 'row',
-        paddingVertical: 8,
-        paddingHorizontal: 4,
-        marginBottom: 8,
-      },
-      categoryButtonActive: {
-        backgroundColor: '#6A1B9A',
-      },
-      categoryButton: {
-        paddingHorizontal: 24,
-        paddingVertical: 14,
-        backgroundColor: '#e5e7eb',
-        borderRadius: 30,
-        marginRight: 12,
-        minWidth: 120,
-        minHeight: 50,
-        alignItems: 'center',
-        justifyContent: 'center',
-      },
-      categoryText: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#1f2937',
-      },
-      categoryTextActive: {
-        color: '#ffffff',
-        fontWeight: '700',
-      },
-      listContainer: {
-        paddingBottom: 30,
-        paddingTop: 4,
-      },
-      card: {
-        backgroundColor: '#ffffff',
-        borderRadius: 16,
-        padding: 18,
-        margin: 4,
-        shadowColor: '#000000',
+  // ==== Containers ====
+  container: {
+    flex: 1,
+    backgroundColor: '#d6b0eeff',
+    paddingHorizontal: 10,
+    padding: 5,
+    borderRadius: 40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowOpacity: 0.5
+  },
+  categoryContainer: {
+    paddingVertical: 0,
+    backgroundColor: 'white',
+    paddingBottom: 0,
+  },
+  cardsContainer: {
+    flex: '90%', // Fixed from '75%' to numeric
+    
+  },
+
+  // ==== Category Scroll & Buttons ====
+  categoryScroll: {
+    flexDirection: 'row',
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    marginBottom: 4,
+  },
+  categoryButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 30,
+    marginRight: 12,
+    maxWidth: 150,
+    maxHeight: 55,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  categoryButtonActive: {
+    backgroundColor: '#6A1B9A',
+  },
+  categoryText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+    textAlign: 'center',
+  },
+  categoryTextActive: {
+    color: '#ffffff',
+    fontWeight: '700',
+  },
+
+  // ==== Product List & Cards ====
+  listContainer: {
+    paddingBottom: 8,
+    paddingTop: 4,
+  },
+  card: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    maxWidth: 320,
+    height: 250,
+    
+
+    
+    elevation: 2,
+
+    margin: 8,
+    shadowColor: '#000000',
+   
+    alignItems: 'center',
+    resizeMode: 'contain',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 3 },
         shadowOpacity: 0.1,
         shadowRadius: 6,
-        elevation: 10,
-        alignItems: 'center',
       },
-      image: {
-        width: '100%',
-        height: 130,
-        borderRadius: 12,
-        resizeMode: 'cover',
+      android: {
+        elevation: 4,
       },
-      title: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#1e293b',
-        marginTop: 10,
-      },
-      subtitle: {
-        fontSize: 13,
-        color: '#6b7280',
-        marginTop: 4,
-      },
-      price: {
-        fontSize: 15,
-        color: '#10b981',
-        fontWeight: '700',
-        marginTop: 6,
-      },
-      centered: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-      },
-      loadingText: {
-        marginTop: 10,
-        fontSize: 16,
-        color: '#333',
-      },
-      errorText: {
-        color: 'red',
-        fontSize: 16,
-        marginBottom: 10,
-        textAlign: 'center',
-      },
-      retryButton: {
-        backgroundColor: '#6A1B9A',
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderRadius: 5,
-      },
-      retryButtonText: {
-        color: '#ffffff',
-        fontSize: 16,
-        fontWeight: 'bold',
-      },
-      noDataText: {
-        fontSize: 16,
-        color: '#666',
-        textAlign: 'center',
-        marginHorizontal: 20,
-      },
+    }),
+  },
+  image: {
+    width: 300,
+    height: 160,
+    margin: 10,
+   
+    borderRadius: 15,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#6A1B9A',
+    marginTop: 0,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 13,
+    color: '#6A1B9A',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  price: {
+    fontSize: 15,
+    color: '#6A1B9A',
+    fontWeight: '700',
+    marginTop: 1,
+    textAlign: 'center',
+  },
+
+  // ==== Loading & Error States ====
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#333',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: '#6A1B9A',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  retryButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  noDataText: {
+    fontSize: 16,
+    color: 'red',
+    textAlign: 'center',
+    marginHorizontal: 10,
+  },
 });

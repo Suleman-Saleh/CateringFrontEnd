@@ -18,29 +18,30 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 const labels = ['Event Info', 'Services', 'Summary', 'Payment'];
 const icons = ['calendar', 'paint-brush', 'list-alt', 'credit-card'];
 
-const customStyles = {
-  stepIndicatorSize: 30,
-  currentStepIndicatorSize: 40,
-  separatorStrokeWidth: 2,
-  currentStepStrokeWidth: 3,
-  stepStrokeCurrentColor: '#6A1B9A',
-  stepStrokeWidth: 3,
-  stepStrokeFinishedColor: '#6A1B9A',
-  stepStrokeUnFinishedColor: '#D1C4E9',
-  separatorFinishedColor: '#6A1B9A',
-  separatorUnFinishedColor: '#D1C4E9',
-  stepIndicatorFinishedColor: '#6A1B9A',
-  stepIndicatorUnFinishedColor: '#FFFFFF',
-  stepIndicatorCurrentColor: '#FFFFFF',
-  stepIndicatorLabelFontSize: 13,
-  currentStepIndicatorLabelFontSize: 13,
-  stepIndicatorLabelCurrentColor: '#6A1B9A',
-  stepIndicatorLabelFinishedColor: '#FFFFFF',
-  stepIndicatorLabelUnFinishedColor: '#D1C4E9',
-  labelColor: '#999999',
-  labelSize: 13,
-  currentStepLabelColor: '#6A1B9A',
-};
+  const customStyles = {
+    stepIndicatorSize: 30,
+    currentStepIndicatorSize: 40,
+    separatorStrokeWidth: 2,
+    currentStepStrokeWidth: 5,
+    stepStrokeCurrentColor: '#8852a9ff',
+    stepStrokeWidth: 5,
+    stepStrokeFinishedColor: 'white',
+    stepStrokeUnFinishedColor: 'grey',
+    separatorFinishedColor: 'white',
+    separatorUnFinishedColor: '#D1C4E9',
+    stepIndicatorFinishedColor: '#6A1B9A',
+    stepIndicatorUnFinishedColor: '#FFFFFF',
+    stepIndicatorCurrentColor: '#FFFFFF',
+    stepIndicatorLabelFontSize: 13,
+    currentStepIndicatorLabelFontSize: 13,
+    stepIndicatorLabelCurrentColor: '#6A1B9A',
+    stepIndicatorLabelFinishedColor: '#FFFFFF',
+    stepIndicatorLabelUnFinishedColor: '#D1C4E9',
+    labelColor: 'grey',
+    labelSize: 14,
+    finishedStepLabelColor: 'white',
+    currentStepLabelColor: 'white',
+  };
 
 const PaymentScreen = () => {
   const route = useRoute();

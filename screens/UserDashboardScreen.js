@@ -1,30 +1,95 @@
+
 import { useNavigation } from '@react-navigation/native';
-import React from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+const quickActions = [
+  { id: '1', label: '+ New Event', type: 'primary', action: 'newEvent' },
+  { id: '2', label: 'View Events', type: 'secondary', action: 'viewEvents' },
+  { id: '3', label: 'Settings', type: 'secondary', action: 'settings' },
+];
 
 const events = [
   { id: '1', title: 'Birthday Party', date: 'June 15, 2024', status: 'Confirmed' },
   { id: '2', title: 'Wedding Reception', date: 'July 20, 2024', status: 'Pending' },
 ];
 
-const DashboardScreen = () => {
+const UserDashboardScreen = ({ route }) => {
   const navigation = useNavigation();
+  const { userEmail } = route.params || {};
+  const [userName, setUserName] = useState('');
 
-  const handleNewEvent = () => {
-    navigation.navigate('EventInfoScreen');
+  const scaleAnimRefs = useRef(quickActions.map(() => new Animated.Value(1)));
+  const eventAnimRefs = useRef(events.map(() => ({
+    fade: new Animated.Value(0),
+    translateY: new Animated.Value(30),
+  })));
+
+  useEffect(() => {
+    if (userEmail) {
+      const safeEmail = userEmail.trim().toLowerCase();
+      fetch(`http://localhost:1337/api/customers?filters[Email][$eq]=${safeEmail}&publicationState=live`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.data && data.data.length > 0) {
+            setUserName(data.data[0].Name);
+          } else {
+            console.log('No customer found with email:', safeEmail);
+          }
+        })
+        .catch(err => console.log('Fetch error:', err));
+    }
+
+    eventAnimRefs.current.forEach((anim, index) => {
+      Animated.parallel([
+        Animated.timing(anim.fade, { toValue: 1, duration: 500 + index * 100, useNativeDriver: true }),
+        Animated.timing(anim.translateY, { toValue: 0, duration: 500 + index * 100, useNativeDriver: true }),
+      ]).start();
+    });
+  }, [userEmail]);
+
+  const handlePressAction = (index, action) => {
+    Animated.sequence([
+      Animated.timing(scaleAnimRefs.current[index], { toValue: 0.95, duration: 100, useNativeDriver: true }),
+      Animated.timing(scaleAnimRefs.current[index], { toValue: 1, duration: 100, useNativeDriver: true }),
+    ]).start(() => {
+      if (action.action === 'newEvent') navigation.navigate('EventInfoScreen');
+      else if (action.action === 'viewEvents') alert('View Events clicked');
+      else if (action.action === 'settings') alert('Settings clicked');
+    });
   };
 
-  const renderEvent = ({ item }) => (
-    <View style={styles.card}>
-      <Text style={styles.eventTitle}>{item.title}</Text>
-      <Text style={styles.eventDate}>{item.date}</Text>
-      <View style={[styles.statusBadge, item.status === 'Confirmed' ? styles.statusConfirmed : styles.statusPending]}>
-        <Text style={item.status === 'Confirmed' ? styles.statusTextConfirmed : styles.statusTextPending}>
-          {item.status}
-        </Text>
-      </View>
-    </View>
-  );
+  const renderQuickAction = (action, index) => {
+    const scaleAnim = scaleAnimRefs.current[index];
+    return (
+      <Animated.View
+        key={action.id}
+        style={[styles.actionTile, action.type === 'primary' && styles.primaryActionTile, { transform: [{ scale: scaleAnim }] }]}
+      >
+        <TouchableOpacity onPress={() => handlePressAction(index, action)} activeOpacity={0.8}>
+          <Text style={action.type === 'primary' ? styles.primaryActionText : styles.secondaryActionText}>
+            {action.label}
+          </Text>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
+
+  const renderEvent = ({ item, index }) => {
+    const anim = eventAnimRefs.current[index];
+    return (
+      <Animated.View style={[styles.eventCard, { opacity: anim.fade, transform: [{ translateY: anim.translateY }] }]}>
+        <Text style={styles.eventTitle}>{item.title}</Text>
+        <Text style={styles.eventDate}>{item.date}</Text>
+        <View style={[styles.statusBadge, item.status === 'Confirmed' ? styles.statusConfirmed : styles.statusPending]}>
+          <Text style={item.status === 'Confirmed' ? styles.statusTextConfirmed : styles.statusTextPending}>
+            {item.status}
+          </Text>
+        </View>
+      </Animated.View>
+    );
+  };
 
   const stats = {
     total: events.length,
@@ -39,19 +104,14 @@ const DashboardScreen = () => {
       keyExtractor={item => item.id}
       ListHeaderComponent={
         <>
-          <Text style={styles.header}>Dashboard</Text>
+          <LinearGradient colors={['#9C27B0', '#7B1FA2']} style={styles.headerGradient}>
+            <Text style={styles.headerTitle}>
+              Welcome{userName ? `, ${userName}` : ''}
+            </Text>
+          </LinearGradient>
 
-          {/* Quick Actions */}
           <View style={styles.quickActionsRow}>
-            <TouchableOpacity onPress={handleNewEvent} style={[styles.actionButton, styles.primaryAction]}>
-              <Text style={styles.primaryActionText}>+ New Event</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
-              <Text style={styles.secondaryActionText}>View Events</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
-              <Text style={styles.secondaryActionText}>Settings</Text>
-            </TouchableOpacity>
+            {quickActions.map((action, index) => renderQuickAction(action, index))}
           </View>
 
           <Text style={styles.sectionTitle}>Recent Events</Text>
@@ -71,22 +131,11 @@ const DashboardScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  contentContainer: {
-    padding: 16,
-    backgroundColor: '#F9FAFB',
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 24,
-  },
-  quickActionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  actionButton: {
+  contentContainer: { padding: 16, backgroundColor: '#F9FAFB', paddingBottom: 50 },
+  headerGradient: { height: 150, justifyContent: 'center', alignItems: 'center', borderRadius: 12, marginBottom: 16 },
+  headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#FFFFFF' },
+  quickActionsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 },
+  actionTile: {
     flex: 1,
     padding: 16,
     borderRadius: 12,
@@ -95,36 +144,32 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
     alignItems: 'center',
     marginHorizontal: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  primaryAction: {
-    backgroundColor: '#111827',
-    borderColor: '#111827',
+  primaryActionTile: { backgroundColor: '#7B1FA2', borderColor: '#7B1FA2' },
+  primaryActionText: { color: '#FFFFFF', fontWeight: '600' },
+  secondaryActionText: { color: '#1F2937', fontWeight: '500' },
+  sectionTitle: { fontSize: 18, fontWeight: '600', color: '#1F2937', marginBottom: 16 },
+  eventCard: {
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
   },
-  primaryActionText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  secondaryActionText: {
-    color: '#1F2937',
-    fontWeight: '500',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 16,
-  },
-  statText: {
-    fontSize: 14,
-    color: '#374151',
-    marginBottom: 8,
-  },
-  confirmedText: {
-    color: '#047857',
-  },
-  pendingText: {
-    color: '#B45309',
-  },
+  eventTitle: { fontSize: 16, fontWeight: '600', color: '#111827' },
+  eventDate: { fontSize: 13, color: '#6B7280', marginTop: 2 },
+  statusBadge: { marginTop: 8, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999, alignSelf: 'flex-start' },
+  statusConfirmed: { backgroundColor: '#D1FAE5' },
+  statusPending: { backgroundColor: '#FEF3C7' },
+  statusTextConfirmed: { fontSize: 12, fontWeight: '500', color: '#065F46' },
+  statusTextPending: { fontSize: 12, fontWeight: '500', color: '#92400E' },
   statsContainer: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
@@ -135,49 +180,9 @@ const styles = StyleSheet.create({
     elevation: 1,
     marginTop: 16,
   },
-  card: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  eventTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  eventDate: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  statusBadge: {
-    marginTop: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 999,
-    alignSelf: 'flex-start',
-  },
-  statusConfirmed: {
-    backgroundColor: '#D1FAE5',
-  },
-  statusPending: {
-    backgroundColor: '#FEF3C7',
-  },
-  statusTextConfirmed: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#065F46',
-  },
-  statusTextPending: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#92400E',
-  },
+  statText: { fontSize: 14, color: '#374151', marginBottom: 8 },
+  confirmedText: { color: '#047857' },
+  pendingText: { color: '#B45309' },
 });
 
-export default DashboardScreen;
+export default UserDashboardScreen;

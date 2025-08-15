@@ -1,8 +1,13 @@
 // screens/LoginScreen.js
 import { Ionicons } from '@expo/vector-icons';
+import bcrypt from 'bcryptjs';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Dimensions,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -12,12 +17,10 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  Alert,
-  ActivityIndicator
 } from 'react-native';
-import bcrypt from 'bcryptjs';
 
 const STRAPI_URL = 'http://localhost:1337';
+const { width, height } = Dimensions.get('window');
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -25,138 +28,220 @@ const LoginScreen = ({ navigation }) => {
   const [secure, setSecure] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
-    console.log('--- handleLogin called ---');
-    console.log('Login attempt with Email:', email, 'Password:', password);
+  // Animation refs
+  const logoAnim = useRef(new Animated.Value(0)).current;
+  const formAnim = useRef(new Animated.Value(0)).current;
 
+  useEffect(() => {
+    Animated.stagger(300, [
+      Animated.timing(logoAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(formAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  const handleLogin = async () => {
     if (!email || !password) {
-      console.log('Validation failed: Missing email or password.');
       Alert.alert('Error', 'Please enter both email and password.');
       return;
     }
-
     setLoading(true);
-    console.log('Loading state set to true.');
-
     try {
-      console.log(`Fetching credential for email: ${email}`);
-      const credentialResponse = await fetch(`${STRAPI_URL}/api/credentials?filters[Email][$eq]=${email}&populate=RoleID`);
-      console.log('Credential response received. Status:', credentialResponse.status);
-
-      if (!credentialResponse.ok) {
-        const errorText = await credentialResponse.text();
-        console.error("Credential fetch failed (not OK response):", credentialResponse.status, errorText);
-        throw new Error(`Authentication failed: ${credentialResponse.status} - ${errorText}`);
-      }
-
-      const credentialData = await credentialResponse.json();
-      console.log('Credential data received:', JSON.stringify(credentialData, null, 2));
-
-
-      if (credentialData.data && credentialData.data.length > 0) {
-        console.log('Credential found for email.');
-        const userCredential = credentialData.data[0];
-        const storedHashedPassword = userCredential.Password;
-        const roleName = userCredential.RoleID?.RoleName;
-
-        console.log('Stored Hashed Password:', storedHashedPassword);
-        console.log('User Role Name:', roleName);
-
-        console.log('Attempting to compare passwords...');
-        const passwordMatch = bcrypt.compareSync(password, storedHashedPassword);
-        console.log('Password Match Result:', passwordMatch);
-
-        if (passwordMatch) {
-          console.log('Password matched!');
-          if (roleName) {
-            // Convert roleName to lowercase for consistent comparison
-            const lowerCaseRoleName = roleName.toLowerCase(); 
-            console.log(`Login successful for ${lowerCaseRoleName}.`);
-
-            Alert.alert('Success', `Welcome, ${email}!`);
-            
-            // Check lowercase role names
-            if (lowerCaseRoleName === 'customer') {
-              navigation.navigate('UserDashboardScreen');
-            } else if (lowerCaseRoleName === 'admin') {
-              navigation.navigate('AdminDashboardScreen');
-            } else {
-              console.log('Unknown user role detected.');
-              Alert.alert('Login Failed', 'Unknown user role. Please contact support.');
-            }
-          } else {
-            console.log('User role not found for this account.');
-            Alert.alert('Login Failed', 'User role not found for this account. Please contact support.');
-          }
+      const response = await fetch(
+        `${STRAPI_URL}/api/credentials?filters[Email][$eq]=${email}&populate[RoleID][populate]=*`
+      );
+      if (!response.ok) throw new Error('Authentication failed');
+      const data = await response.json();
+      if (data.data && data.data.length > 0) {
+        const user = data.data[0];
+        const storedHashedPassword = user?.Password;
+        const roleName = user?.RoleID?.RoleName;
+        if (!storedHashedPassword) {
+          Alert.alert('Login Failed', 'Password not found.');
+          return;
+        }
+        const match = bcrypt.compareSync(password, storedHashedPassword);
+        if (match) {
+          if (roleName?.toLowerCase() === 'customer') navigation.navigate('UserDashboardScreen', { userEmail: email });
+          else if (roleName?.toLowerCase() === 'admin') navigation.navigate('AdminDashboardScreen');
+          else Alert.alert('Login Failed', 'Unknown role.');
         } else {
-          console.log('Invalid password entered.');
-          Alert.alert('Login Failed', 'Invalid email or password.');
+          Alert.alert('Login Failed', 'Invalid password.');
         }
       } else {
-        console.log('No credential found for the provided email.');
-        Alert.alert('Login Failed', 'Invalid email or password.');
+        Alert.alert('Login Failed', 'Email not found.');
       }
-
-    } catch (error) {
-      console.error('--- Caught Login Error ---', error);
-      Alert.alert('Login Failed', error.message || 'An unexpected error occurred.');
+    } catch (err) {
+      Alert.alert('Login Failed', err.message || 'Unexpected error.');
     } finally {
       setLoading(false);
-      console.log('Loading state set to false (finally block).');
     }
   };
 
   return (
-    <LinearGradient colors={['#0F2027', '#203A43', '#2C5364']} style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.inner}>
-          <Text style={styles.appName}>EVENTURES</Text>
-          <Image source={require('../assets/images/applogo.png')} style={styles.logo} />
-          <Text style={styles.heading}>Welcome Back</Text>
-          <Text style={styles.motto}>Mastering the Art of Celebration</Text>
+    <SafeAreaView style={styles.container}>
+      <LinearGradient colors={['#7B1FA2', '#9C27B0']} style={styles.gradientContainer}>
+        {/* Logo Animation */}
+        <Animated.View
+          style={{
+            opacity: logoAnim,
+            transform: [
+              {
+                translateY: logoAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-50, 0],
+                }),
+              },
+            ],
+            alignItems: 'center',
+          }}
+        >
+          <Image source={require('../assets/delivery.png')} style={styles.logo} />
+          <Text style={styles.title}>EVENTURES</Text>
+          <Text style={styles.subtitle}>Mastering the Art of Celebration</Text>
+        </Animated.View>
+      </LinearGradient>
+
+      {/* Floating Form Card */}
+      <Animated.View
+        style={[
+          styles.formCard,
+          {
+            opacity: formAnim,
+            transform: [
+              {
+                translateY: formAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [50, 0],
+                }),
+              },
+            ],
+          },
+        ]}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ width: '100%' }}
+        >
           <View style={styles.inputContainer}>
-            <Ionicons name="mail" size={20} color="#aaa" style={styles.icon} />
-            <TextInput placeholder="Email" placeholderTextColor="#aaa" style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} editable={!loading} />
+            <Ionicons name="mail" size={20} color="#7B1FA2" style={{ marginRight: 12 }} />
+            <TextInput
+              placeholder="Email"
+              placeholderTextColor="#7B1FA2"
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!loading}
+            />
           </View>
+
           <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed" size={20} color="#aaa" style={styles.icon} />
-            <TextInput placeholder="Password" placeholderTextColor="#aaa" style={styles.input} secureTextEntry={secure} value={password} onChangeText={setPassword} autoCapitalize="none" autoCorrect={false} editable={!loading} />
-            <TouchableOpacity onPress={() => setSecure(!secure)} style={styles.eyeButton} disabled={loading}>
-              <Ionicons name={secure ? "eye-off" : "eye"} size={20} color="#aaa" />
+            <Ionicons name="lock-closed" size={20} color="#7B1FA2" style={{ marginRight: 12 }} />
+            <TextInput
+              placeholder="Password"
+              placeholderTextColor="#7B1FA2"
+              style={styles.input}
+              secureTextEntry={secure}
+              value={password}
+              onChangeText={setPassword}
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!loading}
+            />
+            <TouchableOpacity onPress={() => setSecure(!secure)} disabled={loading}>
+              <Ionicons name={secure ? 'eye-off' : 'eye'} size={20} color="#7B1FA2" />
             </TouchableOpacity>
           </View>
-          <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handleLogin} disabled={loading}>
-            {loading ? (<ActivityIndicator color="#fff" />) : (<Text style={styles.buttonText}>Sign In</Text>)}
+
+          <TouchableOpacity
+            style={[styles.button, loading && styles.buttonPressed]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>Sign In</Text>}
           </TouchableOpacity>
+
           <Text style={styles.footerText}>
             Don&apos;t have an account?{' '}
-            <Text style={styles.link} onPress={() => navigation.navigate('Register')} disabled={loading}>
-              Sign up
+            <Text
+              style={styles.link}
+              onPress={() => navigation.navigate('Register')}
+            >
+              Sign Up
             </Text>
           </Text>
         </KeyboardAvoidingView>
-      </SafeAreaView>
-    </LinearGradient>
+      </Animated.View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  safeArea: { flex: 1 },
-  inner: { flex: 1, justifyContent: 'center', paddingHorizontal: 30 },
-  appName: { fontSize: 36, color: '#00BFFF', fontWeight: '900', textAlign: 'center', marginBottom: 10, letterSpacing: 2 },
-  logo: { width: 90, height: 90, alignSelf: 'center', marginBottom: 25 },
-  heading: { fontSize: 28, color: '#fff', fontWeight: 'bold', textAlign: 'center', marginBottom: 6 },
-  motto: { fontSize: 14, color: '#ccc', fontStyle: 'italic', textAlign: 'center', marginBottom: 30 },
-  inputContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 12, paddingHorizontal: 15, paddingVertical: 12, marginBottom: 18 },
-  icon: { marginRight: 12 },
-  input: { flex: 1, fontSize: 16, color: '#fff' },
-  eyeButton: { paddingLeft: 12 },
-  button: { backgroundColor: '#00BFFF', paddingVertical: 16, borderRadius: 12, marginTop: 12, shadowColor: '#00BFFF', shadowOpacity: 0.5, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
-  buttonDisabled: { backgroundColor: '#66a3ff', shadowOpacity: 0.2, elevation: 2 },
-  buttonText: { color: '#fff', fontSize: 20, fontWeight: 'bold', textAlign: 'center' },
-  footerText: { color: '#ccc', marginTop: 24, textAlign: 'center', fontSize: 14 },
-  link: { color: '#00BFFF', fontWeight: 'bold' },
+  container: { flex: 1, backgroundColor: 'white' },
+  gradientContainer: {
+    height: height * 0.55,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  logo: { width: width * 0.3, height: height * 0.15, resizeMode: 'contain', marginBottom: 10 },
+  title: { fontSize: 36, fontWeight: '900', color: 'white', letterSpacing: 6, textAlign: 'center' },
+  subtitle: { fontSize: 16, color: 'white', fontWeight: '600', textAlign: 'center', marginTop: 5 },
+
+  formCard: {
+    flex: 1,
+    marginTop: -40,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 24,
+    marginHorizontal: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#7B1FA2',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    marginBottom: 18,
+    backgroundColor: 'rgba(123,31,162,0.05)',
+  },
+  input: { flex: 1, fontSize: 16, color: '#7B1FA2' },
+
+  button: {
+    backgroundColor: '#7B1FA2',
+    paddingVertical: 14,
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+    shadowColor: '#7B1FA2',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  buttonPressed: { transform: [{ scale: 0.95 }], shadowOpacity: 0.6 },
+  buttonText: { color: 'white', fontWeight: '900', fontSize: 21, letterSpacing: 1.5 },
+
+  footerText: { textAlign: 'center', marginTop: 20, color: '#7B1FA2' },
+  link: { fontWeight: '900', textDecorationLine: 'underline' },
 });
 
 export default LoginScreen;

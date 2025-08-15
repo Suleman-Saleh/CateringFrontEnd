@@ -1,17 +1,24 @@
 // screens/RegisterScreen.js
-import React, { useState } from 'react';
+import bcrypt from 'bcryptjs';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Dimensions,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  ActivityIndicator
+  TouchableOpacity
 } from 'react-native';
-import bcrypt from 'bcryptjs'; // Make sure this is 'bcryptjs' (no hyphen)
 
 const STRAPI_URL = 'http://localhost:1337';
+const { width, height } = Dimensions.get('window');
 
 const RegisterScreen = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -20,142 +27,193 @@ const RegisterScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleRegister = async () => {
-    console.log('--- handleRegister called ---');
-    console.log('Name:', name, 'Phone:', phone, 'Email:', email, 'Password:', password);
+  const cardAnim = useRef(new Animated.Value(0)).current;
 
-    // Basic validation
+  useEffect(() => {
+    Animated.timing(cardAnim, {
+      toValue: 1,
+      duration: 800,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const handleRegister = async () => {
     if (!name || !phone || !email || !password) {
-      console.log('Validation failed: Missing fields.');
       Alert.alert('Error', 'Please fill in all fields.');
       return;
     }
-
     if (password.length < 6) {
-      console.log('Validation failed: Password too short.');
-      Alert.alert('Error', 'Password must be at least 6 characters long.');
+      Alert.alert('Error', 'Password must be at least 6 characters.');
       return;
     }
 
-    setLoading(true); // Start loading indicator
-    console.log('Loading state set to true.');
+    setLoading(true);
 
     try {
-      console.log('Attempting to hash password...');
-      // Hash the password using bcrypt
-      const saltRounds = 10;
-      const hashedPassword = bcrypt.hashSync(password, saltRounds);
-      console.log('Password hashed successfully.'); // DO NOT log hashedPassword in production!
+      const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
 
-      // 1. Find the 'customer' RoleID from Strapi
-      console.log('Fetching customer role...');
+      // 1. Get 'customer' role
       const roleResponse = await fetch(`${STRAPI_URL}/api/user-roles?filters[RoleName][$eq]=customer`);
-      console.log('Role response received. Status:', roleResponse.status);
-      if (!roleResponse.ok) {
-        const errorText = await roleResponse.text(); // Get raw text for more info
-        console.error('Role fetch failed:', roleResponse.status, errorText);
-        throw new new Error(`Failed to fetch user role from Strapi: ${roleResponse.status} - ${errorText}`);
-      }
+      if (!roleResponse.ok) throw new Error('Failed to fetch customer role.');
       const roleData = await roleResponse.json();
       const customerRole = roleData.data[0];
-
-      if (!customerRole) {
-        console.log('Customer role not found in Strapi.');
-        Alert.alert('Error', 'Customer role not found in Strapi. Please ensure a "customer" entry exists in your UserRole collection.');
-        setLoading(false);
-        return;
-      }
-
+      if (!customerRole) throw new Error('Customer role not found.');
       const customerRoleId = customerRole.id;
-      console.log('Customer Role ID found:', customerRoleId);
 
-      // 2. Create Customer entry in Strapi
-      console.log('Creating customer entry...');
+      // 2. Create customer
       const customerResponse = await fetch(`${STRAPI_URL}/api/customers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          data: {
-            Name: name,
-            PhoneNumber: phone,
-            Email: email,
-          },
-        }),
+        body: JSON.stringify({ data: { Name: name, PhoneNumber: phone, Email: email } }),
       });
-      console.log('Customer response received. Status:', customerResponse.status);
+      if (!customerResponse.ok) throw new Error('Failed to create customer.');
 
-      if (!customerResponse.ok) {
-        const errorData = await customerResponse.json();
-        console.error("Customer creation error:", errorData);
-        if (errorData.error?.message?.includes('duplicate key error') && errorData.error?.message?.includes('email')) {
-            throw new Error('An account with this email already exists.');
-        }
-        throw new Error(errorData.error?.message || 'Failed to create customer record.');
-      }
-      // const newCustomer = await customerResponse.json();
-
-      // 3. Create Credential entry with the HASHED password
-      console.log('Creating credential entry...');
+      // 3. Create credential
       const credentialResponse = await fetch(`${STRAPI_URL}/api/credentials`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          data: {
-            Email: email,
-            Password: hashedPassword,
-            RoleID: customerRoleId,
-          },
-        }),
+        body: JSON.stringify({ data: { Email: email, Password: hashedPassword, RoleID: customerRoleId } }),
       });
-      console.log('Credential response received. Status:', credentialResponse.status);
+      if (!credentialResponse.ok) throw new Error('Failed to create credentials.');
 
-      if (!credentialResponse.ok) {
-        const errorData = await credentialResponse.json();
-        console.error("Credential creation error:", errorData);
-        if (errorData.error?.message?.includes('duplicate key error') && errorData.error?.message?.includes('email')) {
-            throw new Error('An account with this email already exists in credentials.');
-        }
-        throw new Error(errorData.error?.message || 'Failed to create credentials.');
-      }
-
-      console.log('Registration successful!');
       Alert.alert('Success', 'Registration successful! Please login.');
       navigation.navigate('Login');
 
     } catch (error) {
-      console.error('--- Caught Registration Error ---', error);
-      Alert.alert('Registration Failed', error.message || 'An unexpected error occurred.');
+      Alert.alert('Registration Failed', error.message || 'Unexpected error.');
     } finally {
-      setLoading(false); // Stop loading indicator
-      console.log('Loading state set to false (finally block).');
+      setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Register</Text>
-      <TextInput style={styles.input} placeholder="Full Name" value={name} onChangeText={setName} editable={!loading} />
-      <TextInput style={styles.input} placeholder="Phone Number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" editable={!loading} />
-      <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" editable={!loading} />
-      <TextInput style={styles.input} placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry editable={!loading} />
-      <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handleRegister} disabled={loading} activeOpacity={0.8}>
-        {loading ? (<ActivityIndicator color="#fff" />) : (<Text style={styles.buttonText}>Register</Text>)}
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('Login')} disabled={loading}>
-        <Text style={styles.link}>Already have an account? Login</Text>
-      </TouchableOpacity>
-    </View>
+    <SafeAreaView style={styles.container}>
+      {/* Gradient Header */}
+      <LinearGradient colors={['#7B1FA2', '#9C27B0']} style={styles.gradientHeader}>
+        <Image source={require('../assets/delivery.png')} style={styles.logo} />
+        <Text style={styles.title}>EVENTURES</Text>
+        <Text style={styles.subtitle}>Create your account</Text>
+      </LinearGradient>
+
+      {/* Animated Form Card */}
+      <Animated.View
+        style={[
+          styles.formCard,
+          {
+            opacity: cardAnim,
+            transform: [{
+              translateY: cardAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [50, 0],
+              }),
+            }],
+          },
+        ]}
+      >
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <TextInput
+            style={styles.input}
+            placeholder="Full Name"
+            value={name}
+            onChangeText={setName}
+            editable={!loading}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Phone Number"
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+            editable={!loading}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            editable={!loading}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            editable={!loading}
+          />
+
+          <TouchableOpacity
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={handleRegister}
+            disabled={loading}
+            activeOpacity={0.8}
+          >
+            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Register</Text>}
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => navigation.navigate('Login')} disabled={loading}>
+            <Text style={styles.link}>Already have an account? Login</Text>
+          </TouchableOpacity>
+        </KeyboardAvoidingView>
+      </Animated.View>
+    </SafeAreaView>
   );
 };
 
 export default RegisterScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#f5f5f5' },
-  title: { fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 30, color: '#333' },
-  input: { borderWidth: 1, borderColor: '#ddd', padding: 12, marginBottom: 15, borderRadius: 8, backgroundColor: '#fff', fontSize: 16, color: '#333' },
-  button: { backgroundColor: '#6A1B9A', padding: 15, borderRadius: 8, alignItems: 'center', marginTop: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3, elevation: 3 },
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  gradientHeader: {
+    height: height * 0.4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+  },
+  logo: { width: width * 0.25, height: height * 0.12, resizeMode: 'contain', marginBottom: 10 },
+  title: { fontSize: 32, fontWeight: '900', color: 'white', letterSpacing: 6, textAlign: 'center' },
+  subtitle: { fontSize: 16, color: 'white', fontWeight: '600', textAlign: 'center', marginTop: 5 },
+
+  formCard: {
+    flex: 1,
+    marginTop: -40,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 24,
+    marginHorizontal: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    padding: 12,
+    marginBottom: 15,
+    borderRadius: 10,
+    backgroundColor: '#fff',
+    fontSize: 16,
+    color: '#333',
+  },
+  button: {
+    backgroundColor: '#7B1FA2',
+    padding: 15,
+    borderRadius: 50,
+    alignItems: 'center',
+    marginTop: 10,
+    shadowColor: '#7B1FA2',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
   buttonDisabled: { backgroundColor: '#b39ddb' },
   buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  link: { marginTop: 20, textAlign: 'center', color: '#6A1B9A', textDecorationLine: 'underline', fontSize: 16 },
+  link: { marginTop: 20, textAlign: 'center', color: '#7B1FA2', textDecorationLine: 'underline', fontSize: 16 },
 });
