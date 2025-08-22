@@ -1,6 +1,5 @@
 // screens/LoginScreen.js
 import { Ionicons } from '@expo/vector-icons';
-import bcrypt from 'bcryptjs';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -18,8 +17,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import bcrypt from 'bcryptjs';
 
-const STRAPI_URL = 'http://localhost:1337';
+const STRAPI_URL = 'http://localhost:1337'; // <-- replace with your machine IP
 const { width, height } = Dimensions.get('window');
 
 const LoginScreen = ({ navigation }) => {
@@ -55,28 +55,41 @@ const LoginScreen = ({ navigation }) => {
     setLoading(true);
     try {
       const response = await fetch(
-        `${STRAPI_URL}/api/credentials?filters[Email][$eq]=${email}&populate[RoleID][populate]=*`
+        `${STRAPI_URL}/api/credentials?filters[Email][$eq]=${email}&populate=RoleID`
       );
-      if (!response.ok) throw new Error('Authentication failed');
+
+      if (!response.ok) {
+        throw new Error(`Authentication failed: ${response.status}`);
+      }
+
       const data = await response.json();
+
       if (data.data && data.data.length > 0) {
-        const user = data.data[0];
-        const storedHashedPassword = user?.Password;
-        const roleName = user?.RoleID?.RoleName;
-        if (!storedHashedPassword) {
-          Alert.alert('Login Failed', 'Password not found.');
-          return;
-        }
-        const match = bcrypt.compareSync(password, storedHashedPassword);
-        if (match) {
-          if (roleName?.toLowerCase() === 'customer') navigation.navigate('UserDashboardScreen', { userEmail: email });
-          else if (roleName?.toLowerCase() === 'admin') navigation.navigate('AdminDashboardScreen');
-          else Alert.alert('Login Failed', 'Unknown role.');
+        const userCredential = data.data[0];
+        const storedHashedPassword = userCredential.Password;
+        const roleName = userCredential.RoleID?.RoleName;
+
+        // Compare passwords
+        const passwordMatch = bcrypt.compareSync(password, storedHashedPassword);
+
+        if (passwordMatch) {
+          if (roleName) {
+            const lowerCaseRole = roleName.toLowerCase();
+            if (lowerCaseRole === 'customer') {
+              navigation.navigate('UserDashboardScreen', { userEmail: email });
+            } else if (lowerCaseRole === 'admin') {
+              navigation.navigate('AdminDashboardScreen');
+            } else {
+              Alert.alert('Login Failed', 'Unknown role. Please contact support.');
+            }
+          } else {
+            Alert.alert('Login Failed', 'User role not found.');
+          }
         } else {
-          Alert.alert('Login Failed', 'Invalid password.');
+          Alert.alert('Login Failed', 'Invalid email or password.');
         }
       } else {
-        Alert.alert('Login Failed', 'Email not found.');
+        Alert.alert('Login Failed', 'Invalid email or password.');
       }
     } catch (err) {
       Alert.alert('Login Failed', err.message || 'Unexpected error.');
@@ -88,7 +101,6 @@ const LoginScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient colors={['#7B1FA2', '#9C27B0']} style={styles.gradientContainer}>
-        {/* Logo Animation */}
         <Animated.View
           style={{
             opacity: logoAnim,
@@ -109,7 +121,6 @@ const LoginScreen = ({ navigation }) => {
         </Animated.View>
       </LinearGradient>
 
-      {/* Floating Form Card */}
       <Animated.View
         style={[
           styles.formCard,
@@ -173,10 +184,7 @@ const LoginScreen = ({ navigation }) => {
 
           <Text style={styles.footerText}>
             Don&apos;t have an account?{' '}
-            <Text
-              style={styles.link}
-              onPress={() => navigation.navigate('Register')}
-            >
+            <Text style={styles.link} onPress={() => navigation.navigate('Register')}>
               Sign Up
             </Text>
           </Text>
@@ -197,7 +205,6 @@ const styles = StyleSheet.create({
   logo: { width: width * 0.3, height: height * 0.15, resizeMode: 'contain', marginBottom: 10 },
   title: { fontSize: 36, fontWeight: '900', color: 'white', letterSpacing: 6, textAlign: 'center' },
   subtitle: { fontSize: 16, color: 'white', fontWeight: '600', textAlign: 'center', marginTop: 5 },
-
   formCard: {
     flex: 1,
     marginTop: -40,
@@ -223,7 +230,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(123,31,162,0.05)',
   },
   input: { flex: 1, fontSize: 16, color: '#7B1FA2' },
-
   button: {
     backgroundColor: '#7B1FA2',
     paddingVertical: 14,
@@ -239,7 +245,6 @@ const styles = StyleSheet.create({
   },
   buttonPressed: { transform: [{ scale: 0.95 }], shadowOpacity: 0.6 },
   buttonText: { color: 'white', fontWeight: '900', fontSize: 21, letterSpacing: 1.5 },
-
   footerText: { textAlign: 'center', marginTop: 20, color: '#7B1FA2' },
   link: { fontWeight: '900', textDecorationLine: 'underline' },
 });
