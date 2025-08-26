@@ -1,24 +1,24 @@
 import { useNavigation } from '@react-navigation/native';
 import { useCallback, useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    FlatList,
-    Image,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  FlatList,
+  Image,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { useBooking } from './BookingContextScreen';
 
 const STRAPI_URL = 'http://localhost:1337';
 
 export default function DecorationAdminScreen() {
-  const { updateBooking, booking } = useBooking();
+  const { updateBooking, booking, colors } = useBooking(); // 🎨 get theme colors
   const navigation = useNavigation();
   const { width } = Dimensions.get('window');
   const cardWidth = (width - 48) / 2;
@@ -45,7 +45,6 @@ export default function DecorationAdminScreen() {
         );
         if (!response.ok) {
           const errorData = await response.json();
-          console.error("Strapi API Error Response:", errorData);
           throw new Error(
             errorData.error?.message ||
               `Failed to fetch decoration items: ${response.status} ${response.statusText}`
@@ -53,7 +52,6 @@ export default function DecorationAdminScreen() {
         }
 
         const apiResponse = await response.json();
-        console.log("Fetched decoration items raw data:", JSON.stringify(apiResponse.data, null, 2));
 
         const groupedItems = apiResponse.data.reduce((acc, item) => {
           const attrs = item.attributes || {};
@@ -67,15 +65,9 @@ export default function DecorationAdminScreen() {
 
           if (images.length > 0 && images[0].attributes?.url) {
             imageUrl = `${STRAPI_URL}${images[0].attributes.url}`;
-          } else {
-            console.warn(`No valid image for item ${item.id}, Name: ${name}`);
           }
 
-          if (!category) {
-            console.warn(`Item ${item.id} missing category, skipping`);
-            return acc;
-          }
-
+          if (!category) return acc;
           if (!acc[category]) acc[category] = [];
 
           acc[category].push({
@@ -95,7 +87,6 @@ export default function DecorationAdminScreen() {
           setSelectedCategory(Object.keys(groupedItems)[0]);
         }
       } catch (err) {
-        console.error("Error fetching decoration items:", err);
         setError(err.message);
         Alert.alert('Error', `Failed to load decoration items: ${err.message}`);
       } finally {
@@ -121,8 +112,10 @@ export default function DecorationAdminScreen() {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#6A1B9A" />
-        <Text style={styles.loadingText}>Loading Decoration Items...</Text>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textPrimary }]}>
+          Loading Decoration Items...
+        </Text>
       </View>
     );
   }
@@ -130,12 +123,12 @@ export default function DecorationAdminScreen() {
   if (error) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.errorText}>Error: {error}</Text>
+        <Text style={[styles.errorText, { color: colors.danger }]}>Error: {error}</Text>
         <TouchableOpacity
-          style={styles.retryButton}
+          style={[styles.retryButton, { backgroundColor: colors.primary }]}
           onPress={() => setSelectedCategory('')}
         >
-          <Text style={styles.retryButtonText}>Retry</Text>
+          <Text style={[styles.retryButtonText, { color: colors.background }]}>Retry</Text>
         </TouchableOpacity>
       </View>
     );
@@ -144,7 +137,7 @@ export default function DecorationAdminScreen() {
   if (categories.length === 0 && !loading) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.noDataText}>
+        <Text style={[styles.noDataText, { color: colors.danger }]}>
           No decoration items found. Please add items in Strapi.
         </Text>
       </View>
@@ -152,7 +145,7 @@ export default function DecorationAdminScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -164,13 +157,15 @@ export default function DecorationAdminScreen() {
             onPress={() => setSelectedCategory(category)}
             style={[
               styles.categoryButton,
-              selectedCategory === category && styles.categoryButtonActive,
+              { backgroundColor: colors.secondary },
+              selectedCategory === category && { backgroundColor: colors.primary },
             ]}
           >
             <Text
               style={[
                 styles.categoryText,
-                selectedCategory === category && styles.categoryTextActive,
+                { color: colors.textPrimary },
+                selectedCategory === category && { color: colors.background },
               ]}
             >
               {category}
@@ -188,13 +183,13 @@ export default function DecorationAdminScreen() {
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <TouchableOpacity
-              style={[styles.card, { width: cardWidth }]}
+              style={[styles.card, { width: cardWidth, backgroundColor: colors.background }]}
               onPress={() => handleItemPress(item)}
             >
               <Image source={{ uri: item.image }} style={styles.image} />
-              <Text style={styles.title}>{item.name}</Text>
-              <Text style={styles.subtitle}>{item.style}</Text>
-              <Text style={styles.price}>${item.price}</Text>
+              <Text style={[styles.title, { color: colors.primary }]}>{item.name}</Text>
+              <Text style={[styles.subtitle, { color: colors.secondary }]}>{item.style}</Text>
+              <Text style={[styles.price, { color: colors.primary }]}>${item.price}</Text>
             </TouchableOpacity>
           )}
         />
@@ -206,7 +201,6 @@ export default function DecorationAdminScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#d6b0eeff',
     paddingHorizontal: 10,
     padding: 5,
     borderRadius: 40,
@@ -226,7 +220,6 @@ const styles = StyleSheet.create({
   categoryButton: {
     paddingHorizontal: 24,
     paddingVertical: 10,
-    backgroundColor: '#e5e7eb',
     borderRadius: 30,
     marginRight: 12,
     maxWidth: 150,
@@ -245,25 +238,16 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  categoryButtonActive: {
-    backgroundColor: '#6A1B9A',
-  },
   categoryText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1f2937',
     textAlign: 'center',
-  },
-  categoryTextActive: {
-    color: '#ffffff',
-    fontWeight: '700',
   },
   listContainer: {
     paddingBottom: 8,
     paddingTop: 4,
   },
   card: {
-    backgroundColor: 'white',
     borderRadius: 16,
     maxWidth: 320,
     height: 250,
@@ -290,18 +274,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#6A1B9A',
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 13,
-    color: '#6A1B9A',
     marginTop: 4,
     textAlign: 'center',
   },
   price: {
     fontSize: 15,
-    color: '#6A1B9A',
     fontWeight: '700',
     marginTop: 1,
     textAlign: 'center',
@@ -314,28 +295,23 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#333',
   },
   errorText: {
-    color: 'red',
     fontSize: 16,
     marginBottom: 10,
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: '#6A1B9A',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
   },
   retryButtonText: {
-    color: '#ffffff',
     fontSize: 16,
     fontWeight: 'bold',
   },
   noDataText: {
     fontSize: 16,
-    color: 'red',
     textAlign: 'center',
     marginHorizontal: 10,
   },

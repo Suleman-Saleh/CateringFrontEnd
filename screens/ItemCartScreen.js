@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -14,20 +15,14 @@ import {
 import { useBooking } from './BookingContextScreen'; // adjust import path
 
 export default function ItemCartScreen({ route, navigation }) {
-  // --- FIX START ---
-  // Destructure itemDetails and itemCategory from route.params
   const { itemDetails, itemCategory } = route.params;
-
-  // Use itemDetails as the main item object
   const item = itemDetails;
-  // --- FIX END ---
 
   const [quantity, setQuantity] = useState('1');
   const { addToCart } = useBooking();
 
-  // Ensure price is safely accessed from the item object
   const qty = Math.max(0, parseInt(quantity) || 0);
-  const price = Number(item?.price) || 0; // Added optional chaining for safety
+  const price = Number(item?.price) || 0;
   const totalPrice = (qty * price).toFixed(2);
 
   const handleAddToCart = () => {
@@ -35,70 +30,71 @@ export default function ItemCartScreen({ route, navigation }) {
       Alert.alert('Invalid Quantity', 'Please enter a quantity greater than zero.');
       return;
     }
-    // Pass the full itemDetails object to addToCart, along with the quantity
-    addToCart({ ...item, quantity: qty, category: itemCategory }); // Also pass the category
+    addToCart({ ...item, quantity: qty, category: itemCategory });
 
     Alert.alert('Added to Cart', `${qty} x ${item.name} added to cart!\nTotal: $${totalPrice}`);
     navigation.goBack();
   };
 
-  // Add a defensive check in case itemDetails is somehow missing
   if (!item) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>Item details not found.</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.retryButtonText}>Go Back</Text>
-        </TouchableOpacity>
-      </View>
+      <LinearGradient colors={['#4A90E2', '#2C3E50']} style={styles.flex}>
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>Item details not found.</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={() => navigation.goBack()}>
+            <Text style={styles.retryButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
     );
   }
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={styles.flex}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.card}>
-          <Image source={{ uri: item.image }} style={styles.image} resizeMode="contain" />
-          <Text style={styles.name}>{item.name}</Text>
-          <Text style={styles.price}>Price: ${price.toFixed(2)}</Text>
+    <LinearGradient colors={['#4A90E2', '#2C3E50']} style={styles.flex}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.flex}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <View style={styles.card}>
+            <Image source={{ uri: item.image }} style={styles.image} resizeMode="contain" />
+            <Text style={styles.name}>{item.name}</Text>
+            <Text style={styles.price}>Price: ${price.toFixed(2)}</Text>
 
-          <View style={styles.inputBlock}>
-            <Text style={styles.label}>Enter Quantity</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={quantity}
-              onChangeText={(text) => {
-                if (/^\d*$/.test(text)) setQuantity(text);
-              }}
-              placeholder="1"
-              maxLength={3}
-            />
+            <View style={styles.inputBlock}>
+              <Text style={styles.label}>Enter Quantity</Text>
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                value={quantity}
+                onChangeText={(text) => {
+                  if (/^\d*$/.test(text)) setQuantity(text);
+                }}
+                placeholder="1"
+                maxLength={3}
+              />
+            </View>
+
+            <Text style={styles.total}>Total: ${totalPrice}</Text>
+
+            <TouchableOpacity
+              style={[styles.button, qty <= 0 && styles.buttonDisabled]}
+              onPress={handleAddToCart}
+              disabled={qty <= 0}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.buttonText}>Add to Cart</Text>
+            </TouchableOpacity>
           </View>
-
-          <Text style={styles.total}>Total: ${totalPrice}</Text>
-
-          <TouchableOpacity
-            style={[styles.button, qty <= 0 && styles.buttonDisabled]}
-            onPress={handleAddToCart}
-            disabled={qty <= 0}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.buttonText}>Add to Cart</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
-    backgroundColor: '#f6f8fa',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -106,8 +102,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: '#E6F0FA', // ✅ light sky blue card
+    borderRadius: 16,
     padding: 24,
     alignItems: 'center',
     shadowColor: '#000',
@@ -126,14 +122,14 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 26,
     fontWeight: '700',
-    color: '#333',
+    color: '#2C3E50', // ✅ dark blue text
     textAlign: 'center',
     marginBottom: 8,
   },
   price: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#666',
+    color: '#4A90E2', // ✅ theme blue
     marginBottom: 20,
   },
   inputBlock: {
@@ -142,39 +138,39 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    color: '#555',
+    color: '#2C3E50',
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#4A90E2',
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 15,
     fontSize: 18,
     textAlign: 'center',
     color: '#222',
-    backgroundColor: '#fafafa',
+    backgroundColor: '#ffffff',
   },
   total: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#222',
+    color: '#2C3E50',
     marginBottom: 30,
   },
   button: {
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#4A90E2', // ✅ theme blue button
     paddingVertical: 14,
     paddingHorizontal: 60,
     borderRadius: 10,
-    shadowColor: '#6A1B9A',
+    shadowColor: '#2C3E50',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.25,
     shadowRadius: 10,
     elevation: 3,
   },
   buttonDisabled: {
-    backgroundColor: '#caa8e8',
+    backgroundColor: '#a6c8f5',
     shadowOpacity: 0,
   },
   buttonText: {
@@ -183,12 +179,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
   },
-  // Added styles for error/missing item display
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f6f8fa',
   },
   errorText: {
     color: 'red',
@@ -196,7 +190,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#4A90E2',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,

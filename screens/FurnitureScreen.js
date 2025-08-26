@@ -160,6 +160,15 @@ import {
 
 
 
+
+
+
+
+
+
+
+
+
   Dimensions,
   FlatList,
   Image,
@@ -349,7 +358,7 @@ const styles = StyleSheet.create({
   // ==== Containers ====
   container: {
     flex: 1,
-    backgroundColor: '#d6b0eeff',
+    backgroundColor: '#EAF2FA', // ✅ plain white (no gradient)
     paddingHorizontal: 10,
     padding: 5,
     borderRadius: 40,
@@ -357,7 +366,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     justifyContent: 'center',
     alignItems: 'center',
-    shadowOpacity: 0.5
+    shadowOpacity: 0.5,
   },
   categoryContainer: {
     paddingVertical: 0,
@@ -365,8 +374,7 @@ const styles = StyleSheet.create({
     paddingBottom: 0,
   },
   cardsContainer: {
-    flex: '90%', // Fixed from '75%' to numeric
-    
+    flex: '90%',
   },
 
   // ==== Category Scroll & Buttons ====
@@ -399,7 +407,7 @@ const styles = StyleSheet.create({
     }),
   },
   categoryButtonActive: {
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#4A90E2', // ✅ active blue
   },
   categoryText: {
     fontSize: 16,
@@ -418,18 +426,13 @@ const styles = StyleSheet.create({
     paddingTop: 4,
   },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: '#87CEFA', // ✅ light sky blue card
     borderRadius: 16,
     maxWidth: 320,
     height: 250,
-    
-
-    
     elevation: 2,
-
     margin: 8,
     shadowColor: '#000000',
-   
     alignItems: 'center',
     resizeMode: 'contain',
     ...Platform.select({
@@ -448,26 +451,25 @@ const styles = StyleSheet.create({
     width: 300,
     height: 160,
     margin: 10,
-   
     borderRadius: 15,
     alignItems: 'center',
   },
   title: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#6A1B9A',
+    color: '#004080', // ✅ darker blue for text
     marginTop: 0,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 13,
-    color: '#6A1B9A',
+    color: '#2C3E50', // ✅ secondary dark blue
     marginTop: 4,
     textAlign: 'center',
   },
   price: {
     fontSize: 15,
-    color: '#6A1B9A',
+    color: '#004080', // ✅ darker blue price
     fontWeight: '700',
     marginTop: 1,
     textAlign: 'center',
@@ -491,7 +493,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#4A90E2', // ✅ blue retry
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,

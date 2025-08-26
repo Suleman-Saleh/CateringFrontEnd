@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
   Dimensions,
@@ -10,6 +11,7 @@ import {
   UIManager,
   View,
 } from 'react-native';
+
 import StepIndicator from 'react-native-step-indicator';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useBooking } from './BookingContextScreen';
@@ -41,35 +43,30 @@ export default function OptionsScreen({ navigation }) {
   const labels = ['Event Info', 'Services', 'Summary', 'Payment'];
   const icons = ['calendar', 'paint-brush', 'list-alt', 'credit-card'];
 
-
-
-
-
-  const customStyles = {
-    stepIndicatorSize: 30,
-    currentStepIndicatorSize: 40,
-    separatorStrokeWidth: 2,
-    currentStepStrokeWidth: 5,
-    stepStrokeCurrentColor: '#8852a9ff',
-    stepStrokeWidth: 5,
-    stepStrokeFinishedColor: 'white',
-    stepStrokeUnFinishedColor: 'grey',
-    separatorFinishedColor: 'white',
-    separatorUnFinishedColor: '#D1C4E9',
-    stepIndicatorFinishedColor: '#6A1B9A',
-    stepIndicatorUnFinishedColor: '#FFFFFF',
-    stepIndicatorCurrentColor: '#FFFFFF',
-    stepIndicatorLabelFontSize: 13,
-    currentStepIndicatorLabelFontSize: 13,
-    stepIndicatorLabelCurrentColor: '#6A1B9A',
-    stepIndicatorLabelFinishedColor: '#FFFFFF',
-    stepIndicatorLabelUnFinishedColor: '#D1C4E9',
-    labelColor: 'grey',
-    labelSize: 14,
-    finishedStepLabelColor: 'white',
-    currentStepLabelColor: 'white',
-  };
-
+const customStyles = {
+  stepIndicatorSize: 30,
+  currentStepIndicatorSize: 40,
+  separatorStrokeWidth: 2,
+  currentStepStrokeWidth: 5,
+  stepStrokeCurrentColor: '#2C3E50',
+  stepStrokeWidth: 5,
+  stepStrokeFinishedColor: 'white',
+  stepStrokeUnFinishedColor: '#B0BEC5',
+  separatorFinishedColor: '#2C3E50',
+  separatorUnFinishedColor: '#B0BEC5',
+  stepIndicatorFinishedColor: 'white',
+  stepIndicatorUnFinishedColor: '#FFFFFF',
+  stepIndicatorCurrentColor: '#FFFFFF',
+  stepIndicatorLabelFontSize: 13,
+  currentStepIndicatorLabelFontSize: 13,
+  stepIndicatorLabelCurrentColor: '#2C3E50',
+  stepIndicatorLabelFinishedColor: 'white',
+  stepIndicatorLabelUnFinishedColor: '#B0BEC5',
+  labelColor: 'white',
+  labelSize: 14,
+  currentStepLabelColor: 'white',
+  finishedStepLabelColor: 'white',
+};
   const handleTabPress = (key) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setSelectedTab(key);
@@ -105,8 +102,8 @@ export default function OptionsScreen({ navigation }) {
           >
             <Icon
               name={cat.icon}
-              size={18} // slightly smaller
-              color={isSelected ? '#fff' : '#6B7280'}
+              size={18}
+              color={isSelected ? '#fff' : '#2C3E50'}
               style={{ marginRight: 6 }}
             />
             <Text style={[styles.pillText, isSelected && styles.activePillText]}>
@@ -119,7 +116,12 @@ export default function OptionsScreen({ navigation }) {
   );
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={['#4A90E2', '#2C3E50']}
+      start={{ x: 0, y: 0 }}   // left side
+  end={{ x: 1, y: 0 }} // 🔵 unified blue gradient
+      style={styles.container}
+    >
       {/* Step Indicator */}
       <View style={styles.stepWrapper}>
         <StepIndicator
@@ -131,15 +133,15 @@ export default function OptionsScreen({ navigation }) {
             const iconName = icons[position];
             const color =
               stepStatus === 'current'
-                ? '#6A1B9A'
+                ? '#4A90E2'
                 : stepStatus === 'finished'
                 ? '#fff'
-                : '#D1C4E9';
+                : '#90A4AE';
             const bgColor =
               stepStatus === 'current'
                 ? '#fff'
                 : stepStatus === 'finished'
-                ? '#6A1B9A'
+                ? '#4A90E2'
                 : '#fff';
             return (
               <View style={[styles.stepIndicator, { backgroundColor: bgColor }]}>
@@ -173,18 +175,18 @@ export default function OptionsScreen({ navigation }) {
           <Text style={styles.proceedText}>Continue to Summary</Text>
         </TouchableOpacity>
       )}
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'white', padding: 5 },
+  container: { flex: 1, padding: 5 },
   stepWrapper: {
     marginHorizontal: 10,
     marginBottom: 10,
-    backgroundColor: '#6A1B9A',
     padding: 10,
     borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.1)',
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 2 },
@@ -202,28 +204,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginHorizontal: 16,
-    margin: 8, // smaller gap
+    margin: 8,
   },
   pillTab: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14, // smaller pill width
-    paddingVertical: 10,    // smaller pill height
-    backgroundColor: '#E5E7EB',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: '#E0E0E0',
     borderRadius: 20,
   },
   activePill: {
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#4A90E2',
   },
   pillText: {
-    color: '#374151',
+    color: '#2C3E50',
     fontWeight: '500',
-    fontSize: 14, // lighter text size
+    fontSize: 14,
   },
   activePillText: {
     color: '#fff',
   },
-  progressText: { textAlign: 'center', marginVertical: 8, fontSize: 13, color: '#374151' },
+  progressText: { textAlign: 'center', marginVertical: 8, fontSize: 13, color: '#fff' },
   contentContainer: { flex: 1, marginHorizontal: 16, marginBottom: 80 },
   proceedButton: {
     position: 'absolute',
@@ -233,8 +235,8 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
-    backgroundColor: '#6A1B9A',
-    shadowColor: '#6A1B9A',
+    backgroundColor: '#4A90E2',
+    shadowColor: '#4A90E2',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 6,

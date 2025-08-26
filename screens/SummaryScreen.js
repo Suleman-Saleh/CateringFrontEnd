@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -23,7 +24,7 @@ const SummaryScreen = () => {
   }, []);
 
   const handleFinish = () => {
-    navigation.navigate('Login'); // adjust route name if needed
+    navigation.navigate('Login'); // adjust route if needed
   };
 
   const grandTotal = booking.cartItems.reduce((sum, item) => {
@@ -32,43 +33,55 @@ const SummaryScreen = () => {
   }, 0);
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={styles.flex}
+    <LinearGradient
+       colors={['#4A90E2', '#2C3E50']} // Blue gradient
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
+      style={styles.gradient}
     >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.container}>
-          <Text style={styles.title}>Thank You!</Text>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.flex}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <View style={styles.container}>
+            <Text style={styles.title}>Thank You!</Text>
 
-          <View style={styles.messageBox}>
-            <Text style={styles.successText}>
-              🎉 Your booking was successful!
-            </Text>
-            <Text style={styles.bookingIdText}>
-              Booking ID: <Text style={styles.bookingId}>{bookingId}</Text>
-            </Text>
-            <Text style={styles.totalText}>Total Paid: ${grandTotal.toFixed(2)}</Text>
+            <View style={styles.messageBox}>
+              <Text style={styles.successText}>
+                🎉 Your booking was successful!
+              </Text>
+              <Text style={styles.bookingIdText}>
+                Booking ID: <Text style={styles.bookingId}>{bookingId}</Text>
+              </Text>
+              <Text style={styles.totalText}>
+                Total Paid: ${grandTotal.toFixed(2)}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              onPress={handleFinish}
+              style={styles.homeButton}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.homeButtonText}>Go to Home</Text>
+            </TouchableOpacity>
           </View>
-
-          <TouchableOpacity
-            onPress={handleFinish}
-            style={styles.homeButton}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.homeButtonText}>Go to Home</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </LinearGradient>
   );
 };
 
 export default SummaryScreen;
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
   flex: {
     flex: 1,
-    backgroundColor: '#f6f8fa',
+
   },
   scrollContainer: {
     flexGrow: 1,
@@ -77,14 +90,14 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: '#EAF2FA', // light sky blue
+    borderRadius: 16,
     marginTop: 20,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.15,
     shadowRadius: 12,
-    shadowOffset: { width: 0, height: 5 },
-    elevation: 5,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
     alignItems: 'center',
   },
   title: {
@@ -95,9 +108,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   messageBox: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#E3F2FD', // light blue instead of green
     padding: 16,
-    borderRadius: 10,
+    borderRadius: 12,
     marginBottom: 24,
     alignItems: 'center',
     width: '100%',
@@ -105,7 +118,7 @@ const styles = StyleSheet.create({
   successText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#2E7D32',
+    color: '#1565C0', // deep blue for success text
     marginBottom: 10,
     textAlign: 'center',
   },
@@ -113,10 +126,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     marginBottom: 10,
+    color: '#333',
   },
   bookingId: {
     fontWeight: '700',
-    color: '#388E3C',
+    color: '#1976D2', // deep blue for ID
   },
   totalText: {
     fontSize: 18,
@@ -124,15 +138,15 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   homeButton: {
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#2196F3', // blue button
     paddingVertical: 16,
-    borderRadius: 10,
+    borderRadius: 12,
     width: '100%',
-    shadowColor: '#6A1B9A',
+    shadowColor: '#2196F3',
     shadowOpacity: 0.4,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
-    elevation: 3,
+    elevation: 4,
   },
   homeButtonText: {
     color: '#fff',

@@ -1,4 +1,5 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useLayoutEffect, useState } from 'react';
 import {
   Alert,
@@ -18,30 +19,30 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 const labels = ['Event Info', 'Services', 'Summary', 'Payment'];
 const icons = ['calendar', 'paint-brush', 'list-alt', 'credit-card'];
 
-  const customStyles = {
-    stepIndicatorSize: 30,
-    currentStepIndicatorSize: 40,
-    separatorStrokeWidth: 2,
-    currentStepStrokeWidth: 5,
-    stepStrokeCurrentColor: '#8852a9ff',
-    stepStrokeWidth: 5,
-    stepStrokeFinishedColor: 'white',
-    stepStrokeUnFinishedColor: 'grey',
-    separatorFinishedColor: 'white',
-    separatorUnFinishedColor: '#D1C4E9',
-    stepIndicatorFinishedColor: '#6A1B9A',
-    stepIndicatorUnFinishedColor: '#FFFFFF',
-    stepIndicatorCurrentColor: '#FFFFFF',
-    stepIndicatorLabelFontSize: 13,
-    currentStepIndicatorLabelFontSize: 13,
-    stepIndicatorLabelCurrentColor: '#6A1B9A',
-    stepIndicatorLabelFinishedColor: '#FFFFFF',
-    stepIndicatorLabelUnFinishedColor: '#D1C4E9',
-    labelColor: 'grey',
-    labelSize: 14,
-    finishedStepLabelColor: 'white',
-    currentStepLabelColor: 'white',
-  };
+const customStyles = {
+  stepIndicatorSize: 30,
+  currentStepIndicatorSize: 40,
+  separatorStrokeWidth: 2,
+  currentStepStrokeWidth: 5,
+  stepStrokeCurrentColor: '#2C3E50',
+  stepStrokeWidth: 5,
+  stepStrokeFinishedColor: 'white',
+  stepStrokeUnFinishedColor: '#B0BEC5',
+  separatorFinishedColor: '#2C3E50',
+  separatorUnFinishedColor: '#B0BEC5',
+  stepIndicatorFinishedColor: 'white',
+  stepIndicatorUnFinishedColor: '#FFFFFF',
+  stepIndicatorCurrentColor: '#FFFFFF',
+  stepIndicatorLabelFontSize: 13,
+  currentStepIndicatorLabelFontSize: 13,
+  stepIndicatorLabelCurrentColor: '#2C3E50',
+  stepIndicatorLabelFinishedColor: 'white',
+  stepIndicatorLabelUnFinishedColor: '#B0BEC5',
+  labelColor: 'white',
+  labelSize: 14,
+  currentStepLabelColor: 'white',
+  finishedStepLabelColor: 'white',
+};
 
 const PaymentScreen = () => {
   const route = useRoute();
@@ -60,7 +61,9 @@ const PaymentScreen = () => {
           style={styles.headerButton}
           activeOpacity={0.7}
         >
-          <Text style={[styles.headerButtonText, { color: '#007AFF' }]}>Back</Text>
+          <Text style={[styles.headerButtonText, { color: '#4A90E2' }]}>
+            Back
+          </Text>
         </TouchableOpacity>
       ),
       headerRight: () => (
@@ -83,7 +86,12 @@ const PaymentScreen = () => {
           style={styles.logoutButtonHeader}
           activeOpacity={0.8}
         >
-          <Icon name="sign-out" size={16} color="#fff" style={{ marginRight: 6 }} />
+          <Icon
+            name="sign-out"
+            size={16}
+            color="#fff"
+            style={{ marginRight: 6 }}
+          />
           <Text style={styles.logoutButtonText}>Logout</Text>
         </TouchableOpacity>
       ),
@@ -119,6 +127,12 @@ const PaymentScreen = () => {
   };
 
   return (
+    <LinearGradient
+          colors={['#4A90E2', '#2C3E50']}
+          start={{ x: 0, y: 0 }}   // left side
+      end={{ x: 1, y: 0 }} // 🔵 unified blue gradient
+          style={styles.container}
+        >
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.flex}
@@ -133,16 +147,16 @@ const PaymentScreen = () => {
             const iconName = icons[position];
             const color =
               stepStatus === 'current'
-                ? '#6A1B9A'
+                ? '#4A90E2'
                 : stepStatus === 'finished'
-                  ? '#fff'
-                  : '#D1C4E9';
+                ? '#fff'
+                : '#D1E3F8';
             const bgColor =
               stepStatus === 'current'
                 ? '#fff'
                 : stepStatus === 'finished'
-                  ? '#6A1B9A'
-                  : '#fff';
+                ? '#2C3E50'
+                : '#fff';
 
             return (
               <View
@@ -164,14 +178,14 @@ const PaymentScreen = () => {
         <View style={styles.container}>
           <Text style={styles.title}>Payment Details</Text>
 
-         <Text style={styles.label}>Card Number</Text>
+          <Text style={styles.label}>Card Number</Text>
           <TextInput
             style={styles.input}
             keyboardType="number-pad"
             maxLength={19}
             value={cardNumber}
             onChangeText={(text) => {
-              const cleaned = text.replace(/\D+/g, '').slice(0, 16); 
+              const cleaned = text.replace(/\D+/g, '').slice(0, 16);
               const formatted = cleaned.match(/.{1,4}/g)?.join(' ') || '';
               setCardNumber(formatted);
             }}
@@ -197,14 +211,13 @@ const PaymentScreen = () => {
                 placeholder="MM/YY"
                 value={expiryDate}
                 onChangeText={(text) => {
-                  const cleaned = text.replace(/\D+/g, '').slice(0, 4); // Only digits, max 4
+                  const cleaned = text.replace(/\D+/g, '').slice(0, 4);
                   let formatted = cleaned;
                   if (cleaned.length >= 3) {
                     formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2)}`;
                   }
                   setExpiryDate(formatted);
                 }}
-
                 maxLength={5}
                 placeholderTextColor="#bbb"
               />
@@ -234,6 +247,7 @@ const PaymentScreen = () => {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
+    </LinearGradient>
   );
 };
 
@@ -242,7 +256,7 @@ export default PaymentScreen;
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
-    backgroundColor: '#f6f8fa',
+   
   },
   scrollContainer: {
     flexGrow: 1,
@@ -251,7 +265,7 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     marginTop: 20,
     shadowColor: '#000',
@@ -265,24 +279,24 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 24,
     textAlign: 'center',
-    color: '#222',
+    color: '#2C3E50',
   },
   label: {
     fontSize: 16,
     marginBottom: 8,
-    color: '#444',
+    color: '#2C3E50',
     fontWeight: '600',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#D1E3F8',
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    backgroundColor: '#fafafa',
+    backgroundColor: '#F3F7FC',
     marginBottom: 20,
-    color: '#222',
+    color: '#2C3E50',
   },
   row: {
     flexDirection: 'row',
@@ -292,11 +306,11 @@ const styles = StyleSheet.create({
     flex: 0.48,
   },
   payButton: {
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#4A90E2',
     paddingVertical: 16,
     borderRadius: 10,
     marginTop: 20,
-    shadowColor: '#6A1B9A',
+    shadowColor: '#4A90E2',
     shadowOpacity: 0.4,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
@@ -319,7 +333,7 @@ const styles = StyleSheet.create({
   logoutButtonHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#2C3E50',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
