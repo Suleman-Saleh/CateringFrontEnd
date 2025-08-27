@@ -39,52 +39,37 @@ export default function DecorationSection() {
       try {
         setLoading(true);
         setError(null);
-        // Ensure you're populating the correct field name (DecorationImage)
+
         const response = await fetch(`${STRAPI_URL}/api/decoration-items?populate=DecorationImage`);
         if (!response.ok) {
           const errorData = await response.json();
-          console.error("Strapi API Error Response:", errorData);
-          throw new Error(errorData.error?.message || `Failed to fetch decoration items: ${response.status} ${response.statusText}`);
+          throw new Error(errorData.error?.message || `Failed to fetch: ${response.status}`);
         }
-        const apiResponse = await response.json(); // Renamed to avoid confusion with data.data
-        console.log("Fetched decoration items raw data:", JSON.stringify(apiResponse.data, null, 2));
+        const apiResponse = await response.json();
 
-        // Use apiResponse.data directly as it contains the array of items
         const groupedItems = apiResponse.data.reduce((acc, item) => {
-          // --- FIX: Access fields directly from 'item' and use correct casing ---
-          const category = item.Category; // Corrected from attributes.category
-          const name = item.Name;       // Corrected from attributes.name
-          const style = item.Style;     // Corrected from attributes.style
-          const price = item.PricePerItem; // Corrected from attributes.price (and field name)
-          const decorationImage = item.DecorationImage; // Corrected from attributes.DecorationImage
-          // --- END FIX ---
+          const category = item.Category;
+          const name = item.Name;
+          const style = item.Style;
+          const price = item.PricePerItem;
+          const decorationImage = item.DecorationImage;
 
-          if (!category) {
-            console.warn(`Item ${item.id} is missing a category field.`);
-            return acc;
-          }
+          if (!category) return acc;
 
-          if (!acc[category]) {
-            acc[category] = [];
-          }
+          if (!acc[category]) acc[category] = [];
 
           let imageUrl = 'https://via.placeholder.com/150';
-
-          // Correctly handle the 'DecorationImage' field as it's Multiple Media
-          const firstImage = decorationImage?.[0]; // Access the first object in the array if it exists
-
-          if (firstImage && firstImage.url) { // Check for url directly on the image object (as per your log)
+          const firstImage = decorationImage?.[0];
+          if (firstImage?.url) {
             imageUrl = `${STRAPI_URL}${firstImage.url}`;
-          } else {
-            console.warn(`No valid image URL found for item ID: ${item.id}, Name: ${name}. DecorationImage data:`, decorationImage);
           }
 
           acc[category].push({
             id: item.id,
-            name: name,
-            style: style,
-            price: price,
-            category: category,
+            name,
+            style,
+            price,
+            category,
             image: imageUrl,
           });
           return acc;
@@ -96,7 +81,6 @@ export default function DecorationSection() {
           setSelectedCategory(Object.keys(groupedItems)[0]);
         }
       } catch (err) {
-        console.error("Error fetching decoration items:", err);
         setError(err.message);
         Alert.alert('Error', `Failed to load decoration items: ${err.message}`);
       } finally {
@@ -116,7 +100,7 @@ export default function DecorationSection() {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#6A1B9A" />
+        <ActivityIndicator size="large" color="#4A90E2" />
         <Text style={styles.loadingText}>Loading Decoration Items...</Text>
       </View>
     );
@@ -126,7 +110,7 @@ export default function DecorationSection() {
     return (
       <View style={styles.centered}>
         <Text style={styles.errorText}>Error: {error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={("Decoration Button is Pressed")}>
+        <TouchableOpacity style={styles.retryButton} onPress={() => setSelectedCategory('')}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -143,8 +127,6 @@ export default function DecorationSection() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.categoryContainer}>
-      </View>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -169,7 +151,7 @@ export default function DecorationSection() {
           keyExtractor={(item) => item.id.toString()}
           numColumns={2}
           contentContainerStyle={styles.listContainer}
-                     showsVerticalScrollIndicator={false} 
+          showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={[styles.card, { width: cardWidth }]}
@@ -186,11 +168,12 @@ export default function DecorationSection() {
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   // ==== Containers ====
   container: {
     flex: 1,
-    backgroundColor: '#d6b0eeff',
+    backgroundColor: '#EAF2FA', // ✅ plain white (no gradient)
     paddingHorizontal: 10,
     padding: 5,
     borderRadius: 40,
@@ -198,7 +181,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     justifyContent: 'center',
     alignItems: 'center',
-    shadowOpacity: 0.5
+    shadowOpacity: 0.5,
   },
   categoryContainer: {
     paddingVertical: 0,
@@ -206,8 +189,7 @@ const styles = StyleSheet.create({
     paddingBottom: 0,
   },
   cardsContainer: {
-    flex: '90%', // Fixed from '75%' to numeric
-    
+    flex: '90%',
   },
 
   // ==== Category Scroll & Buttons ====
@@ -240,7 +222,7 @@ const styles = StyleSheet.create({
     }),
   },
   categoryButtonActive: {
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#4A90E2', // ✅ active blue
   },
   categoryText: {
     fontSize: 16,
@@ -259,18 +241,13 @@ const styles = StyleSheet.create({
     paddingTop: 4,
   },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: '#87CEFA', // ✅ light sky blue card
     borderRadius: 16,
     maxWidth: 320,
     height: 250,
-    
-
-    
     elevation: 2,
-
     margin: 8,
     shadowColor: '#000000',
-   
     alignItems: 'center',
     resizeMode: 'contain',
     ...Platform.select({
@@ -289,26 +266,25 @@ const styles = StyleSheet.create({
     width: 300,
     height: 160,
     margin: 10,
-   
     borderRadius: 15,
     alignItems: 'center',
   },
   title: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#6A1B9A',
+    color: '#004080', // ✅ darker blue for text
     marginTop: 0,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 13,
-    color: '#6A1B9A',
+    color: '#2C3E50', // ✅ secondary dark blue
     marginTop: 4,
     textAlign: 'center',
   },
   price: {
     fontSize: 15,
-    color: '#6A1B9A',
+    color: '#004080', // ✅ darker blue price
     fontWeight: '700',
     marginTop: 1,
     textAlign: 'center',
@@ -332,7 +308,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#4A90E2', // ✅ blue retry
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,

@@ -81,8 +81,8 @@ const EventInfoScreen = ({ navigation, route }) => {
     currentStepStrokeWidth: 5,
     stepStrokeCurrentColor: '#8852a9ff',
     stepStrokeWidth: 5,
-    stepStrokeFinishedColor: 'white',
-    stepStrokeUnFinishedColor: 'grey',
+    stepStrokeFinishedColor: '#8852a9ff',
+    stepStrokeUnFinishedColor: '#D1C4E9',
     separatorFinishedColor: '#6A1B9A',
     separatorUnFinishedColor: '#D1C4E9',
     stepIndicatorFinishedColor: '#6A1B9A',
@@ -101,7 +101,7 @@ const EventInfoScreen = ({ navigation, route }) => {
   const renderStepIndicator = useCallback(({ position, stepStatus }) => (
     <Icon
       name={icons[position]}
-      color={stepStatus === 'finished' ? '#FFFFFF' : '#6A1B9A'}
+      color={stepStatus === 'finished' ? '#FFFFFF' : '#4A90E2'}
       size={15}
     />
   ), [icons]);
@@ -213,17 +213,17 @@ const EventInfoScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
-          <LinearGradient colors={['#white', '#7B1FA2']} style={styles.gradientHeader}>
-            <StepIndicator
-              customStyles={customStyles}
-              currentPosition={0}
-              labels={labels}
-              stepCount={labels.length}
-              renderStepIndicator={renderStepIndicator}
-            />
-          </LinearGradient>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
+        <LinearGradient colors={['#white', '#7B1FA2']} style={styles.gradientHeader}>
+          <StepIndicator
+            customStyles={customStyles}
+            currentPosition={0}
+            labels={labels}
+            stepCount={labels.length}
+            renderStepIndicator={renderStepIndicator}
+          />
+        </LinearGradient>
 
           <View style={styles.contentCard}>
             <Text style={styles.title}>Event Details</Text>
@@ -312,12 +312,12 @@ const EventInfoScreen = ({ navigation, route }) => {
               editable={!isLoading}
             />
 
-            <TouchableOpacity style={styles.nextButton} onPress={handleNext} disabled={isLoading}>
-              {isLoading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.nextButtonText}>Proceed</Text>}
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          <TouchableOpacity style={styles.nextButton} onPress={handleNext} disabled={isLoading}>
+            {isLoading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.nextButtonText}>Proceed</Text>}
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
     </View>
   );
 };
@@ -325,19 +325,110 @@ const EventInfoScreen = ({ navigation, route }) => {
 export default EventInfoScreen;
 
 const styles = StyleSheet.create({
-  container:{flex: 1, backgroundColor: '#7B1FA2'},
-  gradientHeader: { height: height * 0.2, justifyContent: 'center', paddingHorizontal: 20, backgroundColor: '#7B1FA2' },
-  contentCard: { flex: 1, marginTop: -30, backgroundColor: 'white', borderRadius: 20, padding: 24, marginHorizontal: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 10 },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 15, color: '#4A148C', textAlign: 'center' },
-  label: { fontSize: 16, marginTop: 12, marginBottom: 6, color: '#7B1FA2' },
-  tileContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 10, },
-  tile: { backgroundColor: 'rgba(123,31,162,0.05)', borderColor: '#7B1FA2', borderWidth: 1, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 16, marginBottom: 10, width: '48%', alignItems: 'center' },
-  selectedTile: { backgroundColor: '#7B1FA2', borderColor: '#7B1FA2' },
-  tileText: { fontSize: 16, color: '#7B1FA2' },
-  selectedTileText: { color: '#FFFFFF', fontWeight: 'bold' },
-  input: { borderWidth: 1, borderColor: '#7B1FA2', borderRadius: 12, padding: 12, marginBottom: 12, backgroundColor: 'rgba(123,31,162,0.05)', color: '#7B1FA2' },
-  dateButton: { backgroundColor: '#7B1FA2', paddingVertical: 12, borderRadius: 12, marginBottom: 10, alignItems: 'center' },
-  dateButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
-  nextButton: { backgroundColor: '#7B1FA2', paddingVertical: 14, borderRadius: 50, justifyContent: 'center', alignItems: 'center', shadowColor: '#7B1FA2', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.35, shadowRadius: 10, elevation: 5 },
-  nextButtonText: { color: 'white', fontWeight: '900', fontSize: 18, letterSpacing: 1 },
+  container: {
+    flex: 1,
+    
+   
+  },
+  gradientHeader: {
+    height: height * 0.2,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    backgroundColor: '#2C3E50',
+  },
+  contentCard: {
+    flex: 1,
+    marginTop: -30,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 24,
+    marginHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#2C3E50',
+    textAlign: 'center',
+  },
+  label: {
+    fontSize: 16,
+    marginTop: 12,
+    marginBottom: 6,
+    color: '#4A90E2',
+  },
+  tileContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  tile: {
+    backgroundColor: 'rgba(74,144,226,0.08)',
+    borderColor: '#4A90E2',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 10,
+    width: '48%',
+    alignItems: 'center',
+  },
+  selectedTile: {
+    backgroundColor: '#4A90E2',
+    borderColor: '#4A90E2',
+  },
+  tileText: {
+    fontSize: 16,
+    color: '#2C3E50',
+  },
+  selectedTileText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#4A90E2',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    backgroundColor: 'rgba(74,144,226,0.08)',
+    color: '#2C3E50',
+  },
+  dateButton: {
+    backgroundColor: '#4A90E2',
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  dateButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  nextButton: {
+    backgroundColor: '#2C3E50',
+    paddingVertical: 14,
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#2C3E50',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  nextButtonText: {
+    color: 'white',
+    fontWeight: '900',
+    fontSize: 18,
+    letterSpacing: 1,
+  },
 });
+

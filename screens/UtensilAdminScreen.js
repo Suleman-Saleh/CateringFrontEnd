@@ -1,21 +1,22 @@
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    FlatList,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  FlatList,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { useBooking } from './BookingContextScreen';
 
-const STRAPI_URL = 'http://localhost:1337'; // Your Strapi URL
+const STRAPI_URL = 'http://localhost:1337';
 
 export default function UtensilScreen() {
   const { updateBooking, booking } = useBooking();
@@ -26,9 +27,8 @@ export default function UtensilScreen() {
   const [utensilItemsFromApi, setUtensilItemsFromApi] = useState({});
   const [selectedCategory, setSelectedCategory] = useState('');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // For CRUD forms
+  // CRUD forms
   const [newCategory, setNewCategory] = useState('');
   const [newProductName, setNewProductName] = useState('');
   const [newProductPrice, setNewProductPrice] = useState('');
@@ -43,7 +43,6 @@ export default function UtensilScreen() {
   const fetchUtensilItems = async () => {
     try {
       setLoading(true);
-      setError(null);
 
       const response = await fetch(`${STRAPI_URL}/api/utensil-items?populate=UtensilImage`);
       if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
@@ -75,8 +74,6 @@ export default function UtensilScreen() {
         setSelectedCategory(Object.keys(groupedItems)[0]);
       }
     } catch (err) {
-      console.error(err);
-      setError(err.message);
       Alert.alert('Error', `Failed to load utensils: ${err.message}`);
     } finally {
       setLoading(false);
@@ -98,7 +95,7 @@ export default function UtensilScreen() {
   };
 
   const deleteCategory = (category) => {
-    Alert.alert("Delete", `Delete category "${category}" and all its products?`, [
+    Alert.alert("Delete", `Delete category "${category}"?`, [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: () => {
         setUtensilItemsFromApi(prev => {
@@ -143,16 +140,16 @@ export default function UtensilScreen() {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#6A1B9A" />
-        <Text style={styles.loadingText}>Loading Utensil Items...</Text>
+        <ActivityIndicator size="large" color="#4A90E2" />
+        <Text style={styles.loadingText}>Loading Utensils...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <LinearGradient colors={['#4A90E2', '#2C3E50']} style={styles.gradientBackground}>
       {/* Category CRUD */}
-      <View style={{ flexDirection: 'row', margin: 10 }}>
+      <View style={styles.row}>
         <TextInput
           style={styles.input}
           placeholder="New Category"
@@ -160,13 +157,13 @@ export default function UtensilScreen() {
           onChangeText={setNewCategory}
         />
         <TouchableOpacity style={styles.addBtn} onPress={addCategory}>
-          <Text style={{ color: '#fff' }}>Add</Text>
+          <Text style={styles.btnText}>Add</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScroll}>
         {categories.map((category) => (
-          <View key={category} style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View key={category} style={styles.categoryRow}>
             <TouchableOpacity
               onPress={() => setSelectedCategory(category)}
               style={[styles.categoryButton, selectedCategory === category && styles.categoryButtonActive]}
@@ -176,7 +173,7 @@ export default function UtensilScreen() {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => deleteCategory(category)}>
-              <Text style={{ color: 'red', marginLeft: 5 }}>X</Text>
+              <Text style={styles.deleteText}>X</Text>
             </TouchableOpacity>
           </View>
         ))}
@@ -199,11 +196,12 @@ export default function UtensilScreen() {
             keyboardType="numeric"
           />
           <TouchableOpacity style={styles.addBtn} onPress={addProduct}>
-            <Text style={{ color: '#fff' }}>Add Product</Text>
+            <Text style={styles.btnText}>Add Product</Text>
           </TouchableOpacity>
         </View>
       ) : null}
 
+      {/* Products */}
       <View style={styles.cardsContainer}>
         <FlatList
           data={utensilItemsFromApi[selectedCategory] || []}
@@ -225,25 +223,30 @@ export default function UtensilScreen() {
           )}
         />
       </View>
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#d6b0eeff', paddingHorizontal: 10, padding: 5, borderRadius: 40 },
-  cardsContainer: { flex: '90%' },
-  categoryScroll: { flexDirection: 'row', paddingVertical: 8, paddingHorizontal: 20, marginBottom: 4 },
-  categoryButton: { paddingHorizontal: 24, paddingVertical: 10, backgroundColor: '#e5e7eb', borderRadius: 30, marginRight: 12 },
-  categoryButtonActive: { backgroundColor: '#6A1B9A' },
-  categoryText: { fontSize: 16, fontWeight: '600', color: '#1f2937' },
-  categoryTextActive: { color: '#fff', fontWeight: '700' },
-  card: { backgroundColor: 'white', borderRadius: 16, maxWidth: 320, height: 250, margin: 8, alignItems: 'center' },
-  image: { width: 300, height: 160, margin: 10, borderRadius: 15 },
-  title: { fontSize: 15, fontWeight: '700', color: '#6A1B9A' },
-  subtitle: { fontSize: 13, color: '#6A1B9A', marginTop: 4 },
-  price: { fontSize: 15, color: '#6A1B9A', fontWeight: '700' },
-  input: { borderWidth: 1, borderColor: '#aaa', padding: 8, borderRadius: 8, margin: 5, backgroundColor: '#fff' },
-  addBtn: { backgroundColor: '#6A1B9A', padding: 10, borderRadius: 8, margin: 5, alignItems: 'center' },
+  gradientBackground: { flex: 1, padding: 12 },
+  row: { flexDirection: 'row', margin: 8 },
+  input: { flex: 1, borderWidth: 1, borderColor: '#ccc', padding: 8, borderRadius: 8, backgroundColor: '#fff' },
+  addBtn: { backgroundColor: '#2C3E50', padding: 10, borderRadius: 8, marginLeft: 8, justifyContent: 'center' },
+  btnText: { color: '#fff', textAlign: 'center' },
+  categoryScroll: { flexDirection: 'row', paddingVertical: 8, paddingHorizontal: 10 },
+  categoryRow: { flexDirection: 'row', alignItems: 'center' },
+  categoryButton: { paddingHorizontal: 18, paddingVertical: 8, backgroundColor: '#EAF2FA', borderRadius: 20, marginRight: 8 },
+  categoryButtonActive: { backgroundColor: '#4A90E2' },
+  categoryText: { fontSize: 14, color: '#2C3E50' },
+  categoryTextActive: { color: '#fff' },
+  deleteText: { color: 'red', marginLeft: 4 },
+  cardsContainer: { flex: 1 },
+  listContainer: { paddingBottom: 80 },
+  card: { backgroundColor: '#EAF2FA', borderRadius: 16, height: 220, margin: 8, alignItems: 'center', padding: 8 },
+  image: { width: '100%', height: 120, borderRadius: 12 },
+  title: { fontSize: 14, color: '#2C3E50', marginTop: 6 },
+  subtitle: { fontSize: 12, color: '#555' },
+  price: { fontSize: 14, color: '#4A90E2', marginTop: 4 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  loadingText: { marginTop: 10, fontSize: 16, color: '#333' }
+  loadingText: { marginTop: 10, fontSize: 14, color: '#fff' },
 });

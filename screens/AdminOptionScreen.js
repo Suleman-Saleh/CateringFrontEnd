@@ -1,13 +1,13 @@
 import { useState } from "react";
 import {
-    LayoutAnimation,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    UIManager,
-    View,
+  LayoutAnimation,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  UIManager,
+  View,
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 
@@ -20,8 +20,8 @@ if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-export default function ManageInventoryScreen({ navigation }) {
-  const [selectedTab, setSelectedTab] = useState("DecorationAdminScreen");
+export default function AdminOptionScreen({ navigation }) {
+  const [selectedTab, setSelectedTab] = useState("Decoration");
 
   const tabs = [
     { key: "Decoration", icon: "paint-brush" },
@@ -37,16 +37,18 @@ export default function ManageInventoryScreen({ navigation }) {
 
   const renderCurrentTab = () => {
     switch (selectedTab) {
-      case "DecorationAdminScreen":
+      case "Decoration":
         return <DecorationAdminScreen navigation={navigation} />;
-      case "UtensilAdminScreen":
+      case "Utensils":
         return <UtensilAdminScreen navigation={navigation} />;
-      case "FurnitureAdminScreen":
+      case "Furniture":
         return <FurnitureAdminScreen navigation={navigation} />;
       case "Events":
         return (
           <View style={{ padding: 20 }}>
-            <Text style={{ fontSize: 16 }}>Event Types CRUD Coming Soon...</Text>
+            <Text style={{ fontSize: 16, color: "#2C3E50" }}>
+              Event Types CRUD Coming Soon...
+            </Text>
           </View>
         );
       default:
@@ -67,7 +69,7 @@ export default function ManageInventoryScreen({ navigation }) {
             <Icon
               name={cat.icon}
               size={18}
-              color={isSelected ? "#fff" : "#6B7280"}
+              color={isSelected ? "#fff" : "#2C3E50"}
               style={{ marginRight: 6 }}
             />
             <Text style={[styles.pillText, isSelected && styles.activePillText]}>
@@ -94,7 +96,13 @@ export default function ManageInventoryScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "white", padding: 10 },
-  title: { fontSize: 22, fontWeight: "bold", marginBottom: 10, textAlign: "center" },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 10,
+    textAlign: "center",
+    color: "#2C3E50", // dark blue for headings
+  },
   pillContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -109,10 +117,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   activePill: {
-    backgroundColor: "#6A1B9A",
+    backgroundColor: "#4A90E2", // login/register blue
   },
   pillText: {
-    color: "#374151",
+    color: "#2C3E50",
     fontWeight: "500",
     fontSize: 14,
   },

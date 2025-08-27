@@ -88,8 +88,8 @@ const RegisterScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Gradient Header */}
-      <LinearGradient colors={['#7B1FA2', '#9C27B0']} style={styles.gradientHeader}>
+      {/* Gradient Header (match LoginScreen) */}
+      <LinearGradient colors={['#4A90E2', '#2C3E50']} style={styles.gradientHeader}>
         <Image source={require('../assets/delivery.png')} style={styles.logo} />
         <Text style={styles.title}>EVENTURES</Text>
         <Text style={styles.subtitle}>Create your account</Text>
@@ -114,6 +114,7 @@ const RegisterScreen = ({ navigation }) => {
           <TextInput
             style={styles.input}
             placeholder="Full Name"
+            placeholderTextColor="#4A90E2"
             value={name}
             onChangeText={setName}
             editable={!loading}
@@ -121,6 +122,7 @@ const RegisterScreen = ({ navigation }) => {
           <TextInput
             style={styles.input}
             placeholder="Phone Number"
+            placeholderTextColor="#4A90E2"
             value={phone}
             onChangeText={setPhone}
             keyboardType="phone-pad"
@@ -129,6 +131,7 @@ const RegisterScreen = ({ navigation }) => {
           <TextInput
             style={styles.input}
             placeholder="Email"
+            placeholderTextColor="#4A90E2"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -138,6 +141,7 @@ const RegisterScreen = ({ navigation }) => {
           <TextInput
             style={styles.input}
             placeholder="Password"
+            placeholderTextColor="#4A90E2"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -165,7 +169,7 @@ const RegisterScreen = ({ navigation }) => {
 export default RegisterScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: 'white' },
   gradientHeader: {
     height: height * 0.4,
     alignItems: 'center',
@@ -193,27 +197,27 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#4A90E2',
     padding: 12,
     marginBottom: 15,
-    borderRadius: 10,
-    backgroundColor: '#fff',
+    borderRadius: 12,
+    backgroundColor: 'rgba(74,144,226,0.05)',
     fontSize: 16,
-    color: '#333',
+    color: '#2C3E50',
   },
   button: {
-    backgroundColor: '#7B1FA2',
+    backgroundColor: '#4A90E2',
     padding: 15,
     borderRadius: 50,
     alignItems: 'center',
     marginTop: 10,
-    shadowColor: '#7B1FA2',
+    shadowColor: '#2C3E50',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.35,
     shadowRadius: 8,
     elevation: 5,
   },
-  buttonDisabled: { backgroundColor: '#b39ddb' },
+  buttonDisabled: { backgroundColor: '#7fade1' },
   buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  link: { marginTop: 20, textAlign: 'center', color: '#7B1FA2', textDecorationLine: 'underline', fontSize: 16 },
+  link: { marginTop: 20, textAlign: 'center', color: '#4A90E2', textDecorationLine: 'underline', fontSize: 16 },
 });

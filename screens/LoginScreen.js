@@ -1,5 +1,6 @@
 // screens/LoginScreen.js
 import { Ionicons } from '@expo/vector-icons';
+import bcrypt from 'bcryptjs';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
 import AsyncStorage from "@react-native-async-storage/async-storage"; // add this at top
@@ -18,7 +19,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import bcrypt from 'bcryptjs';
 
 const STRAPI_URL = 'http://localhost:1337'; // <-- replace with your machine IP
 const { width, height } = Dimensions.get('window');
@@ -127,7 +127,10 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient colors={['#7B1FA2', '#9C27B0']} style={styles.gradientContainer}>
+      <LinearGradient
+        colors={['#4A90E2', '#2C3E50']}
+        style={styles.gradientContainer}
+      >
         <Animated.View
           style={{
             opacity: logoAnim,
@@ -169,10 +172,10 @@ const LoginScreen = ({ navigation }) => {
           style={{ width: '100%' }}
         >
           <View style={styles.inputContainer}>
-            <Ionicons name="mail" size={20} color="#7B1FA2" style={{ marginRight: 12 }} />
+            <Ionicons name="mail" size={20} color="#4A90E2" style={{ marginRight: 12 }} />
             <TextInput
               placeholder="Email"
-              placeholderTextColor="#7B1FA2"
+              placeholderTextColor="#4A90E2"
               style={styles.input}
               value={email}
               onChangeText={setEmail}
@@ -184,10 +187,10 @@ const LoginScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed" size={20} color="#7B1FA2" style={{ marginRight: 12 }} />
+            <Ionicons name="lock-closed" size={20} color="#4A90E2" style={{ marginRight: 12 }} />
             <TextInput
               placeholder="Password"
-              placeholderTextColor="#7B1FA2"
+              placeholderTextColor="#4A90E2"
               style={styles.input}
               secureTextEntry={secure}
               value={password}
@@ -197,7 +200,7 @@ const LoginScreen = ({ navigation }) => {
               editable={!loading}
             />
             <TouchableOpacity onPress={() => setSecure(!secure)} disabled={loading}>
-              <Ionicons name={secure ? 'eye-off' : 'eye'} size={20} color="#7B1FA2" />
+              <Ionicons name={secure ? 'eye-off' : 'eye'} size={20} color="#4A90E2" />
             </TouchableOpacity>
           </View>
 
@@ -249,22 +252,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#7B1FA2',
+    borderColor: '#4A90E2',
     borderRadius: 12,
     paddingHorizontal: 15,
     paddingVertical: 12,
     marginBottom: 18,
-    backgroundColor: 'rgba(123,31,162,0.05)',
+    backgroundColor: 'rgba(74,144,226,0.05)',
   },
-  input: { flex: 1, fontSize: 16, color: '#7B1FA2' },
+  input: { flex: 1, fontSize: 16, color: '#2C3E50' },
   button: {
-    backgroundColor: '#7B1FA2',
+    backgroundColor: '#4A90E2',
     paddingVertical: 14,
     borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 10,
-    shadowColor: '#7B1FA2',
+    shadowColor: '#2C3E50',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
     shadowRadius: 10,
@@ -272,8 +275,8 @@ const styles = StyleSheet.create({
   },
   buttonPressed: { transform: [{ scale: 0.95 }], shadowOpacity: 0.6 },
   buttonText: { color: 'white', fontWeight: '900', fontSize: 21, letterSpacing: 1.5 },
-  footerText: { textAlign: 'center', marginTop: 20, color: '#7B1FA2' },
-  link: { fontWeight: '900', textDecorationLine: 'underline' },
+  footerText: { textAlign: 'center', marginTop: 20, color: '#2C3E50' },
+  link: { fontWeight: '900', textDecorationLine: 'underline', color: '#4A90E2' },
 });
 
 export default LoginScreen;

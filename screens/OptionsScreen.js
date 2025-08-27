@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Dimensions,
   LayoutAnimation,
@@ -10,6 +10,7 @@ import {
   UIManager,
   View,
 } from 'react-native';
+
 import StepIndicator from 'react-native-step-indicator';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useBooking } from './BookingContextScreen';
@@ -54,6 +55,10 @@ export default function OptionsScreen({ navigation, route }) {
 
   const labels = ['Event Info', 'Services', 'Summary', 'Payment'];
   const icons = ['calendar', 'paint-brush', 'list-alt', 'credit-card'];
+
+
+
+
 
   const customStyles = {
     stepIndicatorSize: 30,
@@ -115,8 +120,8 @@ export default function OptionsScreen({ navigation, route }) {
           >
             <Icon
               name={cat.icon}
-              size={18} // slightly smaller
-              color={isSelected ? '#fff' : '#6B7280'}
+              size={18}
+              color={isSelected ? '#fff' : '#2C3E50'}
               style={{ marginRight: 6 }}
             />
             <Text style={[styles.pillText, isSelected && styles.activePillText]}>
@@ -129,7 +134,12 @@ export default function OptionsScreen({ navigation, route }) {
   );
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={['#4A90E2', '#2C3E50']}
+      start={{ x: 0, y: 0 }}   // left side
+  end={{ x: 1, y: 0 }} // 🔵 unified blue gradient
+      style={styles.container}
+    >
       {/* Step Indicator */}
       <View style={styles.stepWrapper}>
         <StepIndicator
@@ -141,15 +151,15 @@ export default function OptionsScreen({ navigation, route }) {
             const iconName = icons[position];
             const color =
               stepStatus === 'current'
-                ? '#6A1B9A'
+                ? '#4A90E2'
                 : stepStatus === 'finished'
                 ? '#fff'
-                : '#D1C4E9';
+                : '#90A4AE';
             const bgColor =
               stepStatus === 'current'
                 ? '#fff'
                 : stepStatus === 'finished'
-                ? '#6A1B9A'
+                ? '#4A90E2'
                 : '#fff';
             return (
               <View style={[styles.stepIndicator, { backgroundColor: bgColor }]}>
@@ -183,18 +193,18 @@ export default function OptionsScreen({ navigation, route }) {
           <Text style={styles.proceedText}>Continue to Summary</Text>
         </TouchableOpacity>
       )}
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'white', padding: 5 },
+  container: { flex: 1, padding: 5 },
   stepWrapper: {
     marginHorizontal: 10,
     marginBottom: 10,
-    backgroundColor: '#6A1B9A',
     padding: 10,
     borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.1)',
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 2 },
@@ -212,28 +222,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginHorizontal: 16,
-    margin: 8, // smaller gap
+    margin: 8,
   },
   pillTab: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 14, // smaller pill width
-    paddingVertical: 10,    // smaller pill height
+    paddingVertical: 10,    // smaller pill height
     backgroundColor: '#E5E7EB',
     borderRadius: 20,
   },
   activePill: {
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#4A90E2',
   },
   pillText: {
-    color: '#374151',
+    color: '#2C3E50',
     fontWeight: '500',
-    fontSize: 14, // lighter text size
+    fontSize: 14,
   },
   activePillText: {
     color: '#fff',
   },
-  progressText: { textAlign: 'center', marginVertical: 8, fontSize: 13, color: '#374151' },
+  progressText: { textAlign: 'center', marginVertical: 8, fontSize: 13, color: '#fff' },
   contentContainer: { flex: 1, marginHorizontal: 16, marginBottom: 80 },
   proceedButton: {
     position: 'absolute',
@@ -243,8 +253,8 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
-    backgroundColor: '#6A1B9A',
-    shadowColor: '#6A1B9A',
+    backgroundColor: '#4A90E2',
+    shadowColor: '#4A90E2',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 6,

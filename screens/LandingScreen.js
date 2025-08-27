@@ -8,16 +8,17 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import Animated, {
   Easing,
+  interpolate,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
   withRepeat,
   withSequence,
-  withTiming
+  withTiming,
 } from "react-native-reanimated";
 
 const { width, height } = Dimensions.get("window");
@@ -50,16 +51,12 @@ function ServiceTile({ title, description, animValue }) {
 // Custom cursor for web only
 function CustomCursor() {
   if (Platform.OS !== "web") return null;
-
   const [pos, setPos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const handleMove = (e) => {
-      const x = e.clientX ?? 0;
-      const y = e.clientY ?? 0;
-      setPos({ x, y });
+      setPos({ x: e.clientX ?? 0, y: e.clientY ?? 0 });
     };
-
     document.addEventListener("mousemove", handleMove, { passive: true });
     return () => document.removeEventListener("mousemove", handleMove);
   }, []);
@@ -85,6 +82,7 @@ export default function LandingScreen() {
   const vanX = useSharedValue(-width * 0.7);
   const vanScale = useSharedValue(1);
   const buttonScale = useSharedValue(1);
+  const gradientAnim = useSharedValue(0);
   const tilesAnim = SERVICES.map(() => useSharedValue(0));
   const [buttonPressed, setButtonPressed] = useState(false);
 
@@ -115,6 +113,16 @@ export default function LandingScreen() {
       -1,
       true
     );
+
+    // Animated gradient loop
+    gradientAnim.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 5000, easing: Easing.linear }),
+        withTiming(0, { duration: 5000, easing: Easing.linear })
+      ),
+      -1,
+      true
+    );
   }, []);
 
   const titleAnimatedStyle = useAnimatedStyle(() => ({
@@ -131,16 +139,29 @@ export default function LandingScreen() {
 
   const buttonAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: buttonScale.value }],
-    shadowColor: "#6A1B9A",
+    shadowColor: "#4A90E2",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.5,
     shadowRadius: 15,
     elevation: 12,
   }));
 
+  // Animate gradient color interpolation
+  const gradientColors = useAnimatedStyle(() => {
+    const blueToGrey = interpolate(gradientAnim.value, [0, 1], [0, 1]);
+    const startColor = blueToGrey === 0 ? "#4A90E2" : "#2C3E50";
+    const endColor = blueToGrey === 0 ? "#2C3E50" : "#4A90E2";
+    return { startColor, endColor };
+  });
+
   return (
     <View style={styles.container}>
-      <LinearGradient colors={["#7B1FA2", "#9C27B0"]} start={[0, 0]} end={[1, 1]} style={styles.gradientContainer}>
+      <LinearGradient
+        colors={["#4A90E2", "#2C3E50"]}
+        start={[0, 0]}
+        end={[1, 1]}
+        style={styles.gradientContainer}
+      >
         <Animated.View style={titleAnimatedStyle}>
           <Text style={styles.title}>Eventures</Text>
         </Animated.View>
@@ -205,7 +226,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: width < 500 ? 16 : 18,
-    color: "white",
+    color: "#E0E0E0",
     fontWeight: "600",
     marginTop: 10,
     marginBottom: 20,
@@ -220,7 +241,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#7B1FA2",
+    shadowColor: "#4A90E2",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
     shadowRadius: 10,
@@ -231,7 +252,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.6,
     shadowRadius: 15,
   },
-  buttonText: { color: "#7B1FA2", fontWeight: "900", fontSize: 21, letterSpacing: 1.8 },
+  buttonText: { color: "#2C3E50", fontWeight: "900", fontSize: 21, letterSpacing: 1.8 },
   tilesContainer: {
     paddingHorizontal: 24,
     paddingTop: 30,
@@ -242,13 +263,13 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
   },
   tile: {
-    backgroundColor: "#7B1FA2",
+    backgroundColor: "#4A90E2",
     borderRadius: 20,
     paddingVertical: 22,
     paddingHorizontal: 18,
     marginBottom: 20,
     width: "48%",
-    shadowColor: "#9C27B0",
+    shadowColor: "#2C3E50",
     shadowOpacity: 0.35,
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 6 },
@@ -256,12 +277,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   tileTitle: { color: "white", fontSize: 19, fontWeight: "700", marginBottom: 6, textAlign: "center" },
-  tileDescription: { color: "#D1C4E9", fontSize: 14, textAlign: "center", lineHeight: 20 },
+  tileDescription: { color: "#E0E0E0", fontSize: 14, textAlign: "center", lineHeight: 20 },
   cursor: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: "transperent",
+    backgroundColor: "transparent",
+    borderWidth: 2,
+    borderColor: "#4A90E2",
     position: "absolute",
     pointerEvents: "none",
   },

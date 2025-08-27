@@ -1,6 +1,13 @@
 import { useNavigation } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 const ManageEventsScreen = () => {
   const [activeTab, setActiveTab] = useState('all'); // default tab
@@ -19,7 +26,7 @@ const ManageEventsScreen = () => {
     try {
       setLoading(true);
       // Replace with your Strapi backend URL
-      const res = await fetch('http://192.168.1.107:1337/api/events'); 
+      const res = await fetch('http://192.168.1.107:1337/api/events');
       const data = await res.json();
 
       // Strapi v4 returns data inside "data"
@@ -53,7 +60,12 @@ const ManageEventsScreen = () => {
           style={[styles.tab, activeTab === 'all' && styles.activeTab]}
           onPress={() => setActiveTab('all')}
         >
-          <Text style={[styles.tabText, activeTab === 'all' && styles.activeTabText]}>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === 'all' && styles.activeTabText,
+            ]}
+          >
             All Events
           </Text>
         </TouchableOpacity>
@@ -65,7 +77,12 @@ const ManageEventsScreen = () => {
             navigation.navigate('EventInfoScreen'); // make sure this matches your route
           }}
         >
-          <Text style={[styles.tabText, activeTab === 'add' && styles.activeTabText]}>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === 'add' && styles.activeTabText,
+            ]}
+          >
             Add New Event
           </Text>
         </TouchableOpacity>
@@ -74,9 +91,15 @@ const ManageEventsScreen = () => {
       {/* Body */}
       {activeTab === 'all' ? (
         loading ? (
-          <ActivityIndicator size="large" color="#7B1FA2" style={{ marginTop: 20 }} />
+          <ActivityIndicator
+            size="large"
+            color="#4A90E2"
+            style={{ marginTop: 20 }}
+          />
         ) : events.length === 0 ? (
-          <Text style={{ textAlign: 'center', marginTop: 20, color: '#6B7280' }}>
+          <Text
+            style={{ textAlign: 'center', marginTop: 20, color: '#6B7280' }}
+          >
             No events available
           </Text>
         ) : (
@@ -94,8 +117,18 @@ const ManageEventsScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB', padding: 16 },
-  header: { fontSize: 24, fontWeight: 'bold', marginBottom: 16, textAlign: 'center', color: '#4A148C' },
-  tabContainer: { flexDirection: 'row', justifyContent: 'center', marginBottom: 16 },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center',
+    color: '#2C3E50',
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
   tab: {
     flex: 1,
     paddingVertical: 12,
@@ -104,11 +137,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
     alignItems: 'center',
   },
-  activeTab: { backgroundColor: '#7B1FA2' },
+  activeTab: { backgroundColor: '#4A90E2' },
   tabText: { fontSize: 16, fontWeight: '600', color: '#374151' },
   activeTabText: { color: '#FFFFFF' },
   eventCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#E3F2FD', // Light blue card background
     padding: 16,
     borderRadius: 10,
     marginBottom: 12,
@@ -117,8 +150,13 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
   },
-  eventTitle: { fontSize: 18, fontWeight: '600', marginBottom: 6, color: '#1F2937' },
-  eventDetails: { fontSize: 14, color: '#6B7280' },
+  eventTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 6,
+    color: '#2C3E50',
+  },
+  eventDetails: { fontSize: 14, color: '#4A90E2' },
 });
 
 export default ManageEventsScreen;
