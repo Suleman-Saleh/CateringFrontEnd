@@ -51,8 +51,9 @@ const EventTile = ({ item, isSelected, onPress, isLoading }) => {
   );
 };
 
-const EventInfoScreen = ({ navigation }) => {
-  const { updateBooking } = useBooking();
+const EventInfoScreen = ({ navigation, route }) => {
+  const { customerId } = route.params || {};
+  const { updateBooking, booking } = useBooking();
 
   // --- States ---
   const [eventTypesFromApi, setEventTypesFromApi] = useState([]);
@@ -80,8 +81,8 @@ const EventInfoScreen = ({ navigation }) => {
     currentStepStrokeWidth: 5,
     stepStrokeCurrentColor: '#8852a9ff',
     stepStrokeWidth: 5,
-    stepStrokeFinishedColor: '#8852a9ff',
-    stepStrokeUnFinishedColor: '#D1C4E9',
+    stepStrokeFinishedColor: 'white',
+    stepStrokeUnFinishedColor: 'grey',
     separatorFinishedColor: '#6A1B9A',
     separatorUnFinishedColor: '#D1C4E9',
     stepIndicatorFinishedColor: '#6A1B9A',
@@ -143,9 +144,12 @@ const EventInfoScreen = ({ navigation }) => {
 
   // --- Handle Next ---
   const handleNext = useCallback(async () => {
-    if (!selectedEventTypeId || !date || !selectedLocationTypeId || !addressInput || !guestCount ||
-        (selectedEventTypeId === 'other_custom' && !customEventName)) {
-      alert('Please complete all fields.');
+    // Trim the address input to handle empty spaces
+    const trimmedAddress = addressInput.trim();
+
+    if (!selectedEventTypeId || !date || !selectedLocationTypeId || !trimmedAddress || !guestCount ||
+      (selectedEventTypeId === 'other_custom' && !customEventName)) {
+      Alert.alert('Missing Information', 'Please complete all fields.');
       return;
     }
 
@@ -172,7 +176,7 @@ const EventInfoScreen = ({ navigation }) => {
           data: {
             event_type: finalEventId,
             location: selectedLocationTypeId,
-            BookingLocationAddress: addressInput,
+            BookingLocationAddress: trimmedAddress, // Use the trimmed address
             BookingDate: date.toISOString(),
             GuestCount: Number(guestCount),
           }
@@ -182,130 +186,138 @@ const EventInfoScreen = ({ navigation }) => {
 
       const locationLabel = locationTypesFromApi.find(lt => lt.value === selectedLocationTypeId)?.label || '';
 
+      // ✅ FIXED: Update the booking context with the correct property names.
       updateBooking({
         eventType: finalEventLabel,
+        eventTypeId: finalEventId,
         eventDateTime: date.toISOString(),
-        eventAddress: addressInput,
+        eventLocation: trimmedAddress, // Store the trimmed address
         locationName: locationLabel,
+        locationId: selectedLocationTypeId,
         guestCount: Number(guestCount),
         bookingId: bookingResult.data.id,
+        // Also save the customerId here for consistency
+        customerId: customerId,
       });
 
-      navigation.navigate('OptionsScreen');
+      console.log("Updated Booking Object after EventInfoScreen:", booking);
+
+      // ✅ FIX: Pass customerId correctly from the route params to the next screen
+      navigation.navigate('OptionsScreen', { customerId });
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      console.log(`Error: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
-  }, [selectedEventTypeId, customEventName, date, selectedLocationTypeId, addressInput, guestCount, eventTypesFromApi, locationTypesFromApi, updateBooking, navigation]);
+  }, [selectedEventTypeId, customEventName, date, selectedLocationTypeId, addressInput, guestCount, eventTypesFromApi, locationTypesFromApi, updateBooking, navigation, customerId]);
 
   return (
     <View style={styles.container}>
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
-        <LinearGradient colors={['#white', '#7B1FA2']} style={styles.gradientHeader}>
-          <StepIndicator
-            customStyles={customStyles}
-            currentPosition={0}
-            labels={labels}
-            stepCount={labels.length}
-            renderStepIndicator={renderStepIndicator}
-          />
-        </LinearGradient>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
+          <LinearGradient colors={['#white', '#7B1FA2']} style={styles.gradientHeader}>
+            <StepIndicator
+              customStyles={customStyles}
+              currentPosition={0}
+              labels={labels}
+              stepCount={labels.length}
+              renderStepIndicator={renderStepIndicator}
+            />
+          </LinearGradient>
 
-        <View style={styles.contentCard}>
-          <Text style={styles.title}>Event Details</Text>
+          <View style={styles.contentCard}>
+            <Text style={styles.title}>Event Details</Text>
 
-          <Text style={styles.label}>Select Event Type</Text>
-          <View style={styles.tileContainer}>
-            {eventTypesFromApi.map(item => (
-              <EventTile
-                key={item.value}
-                item={item}
-                isSelected={selectedEventTypeId === item.value}
-                onPress={setSelectedEventTypeId}
-                isLoading={isLoading}
+            <Text style={styles.label}>Select Event Type</Text>
+            <View style={styles.tileContainer}>
+              {eventTypesFromApi.map(item => (
+                <EventTile
+                  key={item.value}
+                  item={item}
+                  isSelected={selectedEventTypeId === item.value}
+                  onPress={setSelectedEventTypeId}
+                  isLoading={isLoading}
+                />
+              ))}
+            </View>
+
+            {selectedEventTypeId === 'other_custom' && (
+              <TextInput
+                style={styles.input}
+                placeholder="Enter custom event name"
+                value={customEventName}
+                onChangeText={setCustomEventName}
+                editable={!isLoading}
               />
-            ))}
-          </View>
+            )}
 
-          {selectedEventTypeId === 'other_custom' && (
+            <Text style={styles.label}>Event Date</Text>
+            <TouchableOpacity style={styles.dateButton} onPress={() => setOpenDate(true)}>
+              <Text style={styles.dateButtonText}>{moment(date).format('YYYY-MM-DD')}</Text>
+            </TouchableOpacity>
+            {openDate && (
+              <DateTimePicker
+                value={date}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => { setOpenDate(false); selectedDate && setDate(selectedDate); }}
+              />
+            )}
+
+            <Text style={styles.label}>Event Time</Text>
+            <TouchableOpacity style={styles.dateButton} onPress={() => setOpenTime(true)}>
+              <Text style={styles.dateButtonText}>{moment(date).format('HH:mm')}</Text>
+            </TouchableOpacity>
+            {openTime && (
+              <DateTimePicker
+                value={date}
+                mode="time"
+                display="default"
+                onChange={(event, selectedTime) => { setOpenTime(false); selectedTime && setDate(selectedTime); }}
+              />
+            )}
+
+            <Text style={styles.label}>Select Location Type</Text>
+            <DropDownPicker
+              open={locationDropdownOpen}
+              value={selectedLocationTypeId}
+              items={locationTypesFromApi}
+              setOpen={setLocationDropdownOpen}
+              setValue={setSelectedLocationTypeId}
+              placeholder="Select location type"
+              containerStyle={{ marginBottom: 20 }}
+              zIndex={3000}
+              zIndexInverse={1000}
+              disabled={isLoading}
+            />
+
+            <Text style={styles.label}>Event Address</Text>
             <TextInput
-              style={styles.input}
-              placeholder="Enter custom event name"
-              value={customEventName}
-              onChangeText={setCustomEventName}
+              ref={addressInputRef}
+              style={[styles.input, { height: 80 }]}
+              placeholder="Enter event address"
+              value={addressInput}
+              onChangeText={setAddressInput}
+              multiline
               editable={!isLoading}
             />
-          )}
 
-          <Text style={styles.label}>Event Date</Text>
-          <TouchableOpacity style={styles.dateButton} onPress={() => setOpenDate(true)}>
-            <Text style={styles.dateButtonText}>{moment(date).format('YYYY-MM-DD')}</Text>
-          </TouchableOpacity>
-          {openDate && (
-            <DateTimePicker
-              value={date}
-              mode="date"
-              display="default"
-              onChange={(event, selectedDate) => { setOpenDate(false); selectedDate && setDate(selectedDate); }}
+            <Text style={styles.label}>Number of Guests</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter number of guests"
+              keyboardType="numeric"
+              value={guestCount}
+              onChangeText={setGuestCount}
+              editable={!isLoading}
             />
-          )}
 
-          <Text style={styles.label}>Event Time</Text>
-          <TouchableOpacity style={styles.dateButton} onPress={() => setOpenTime(true)}>
-            <Text style={styles.dateButtonText}>{moment(date).format('HH:mm')}</Text>
-          </TouchableOpacity>
-          {openTime && (
-            <DateTimePicker
-              value={date}
-              mode="time"
-              display="default"
-              onChange={(event, selectedTime) => { setOpenTime(false); selectedTime && setDate(selectedTime); }}
-            />
-          )}
-
-          <Text style={styles.label}>Select Location Type</Text>
-          <DropDownPicker
-            open={locationDropdownOpen}
-            value={selectedLocationTypeId}
-            items={locationTypesFromApi}
-            setOpen={setLocationDropdownOpen}
-            setValue={setSelectedLocationTypeId}
-            placeholder="Select location type"
-            containerStyle={{ marginBottom: 20 }}
-            zIndex={3000}
-            zIndexInverse={1000}
-            disabled={isLoading}
-          />
-
-          <Text style={styles.label}>Event Address</Text>
-          <TextInput
-            ref={addressInputRef}
-            style={[styles.input, { height: 80 }]}
-            placeholder="Enter event address"
-            value={addressInput}
-            onChangeText={setAddressInput}
-            multiline
-            editable={!isLoading}
-          />
-
-          <Text style={styles.label}>Number of Guests</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter number of guests"
-            keyboardType="numeric"
-            value={guestCount}
-            onChangeText={setGuestCount}
-            editable={!isLoading}
-          />
-
-          <TouchableOpacity style={styles.nextButton} onPress={handleNext} disabled={isLoading}>
-            {isLoading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.nextButtonText}>Proceed</Text>}
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            <TouchableOpacity style={styles.nextButton} onPress={handleNext} disabled={isLoading}>
+              {isLoading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.nextButtonText}>Proceed</Text>}
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 };

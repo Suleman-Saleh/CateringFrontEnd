@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
+
 import AdminDashboardScreen from '../screens/AdminDashboardScreen';
 import AdminOptionScreen from '../screens/AdminOptionScreen';
 import BookingConfirmationScreen from '../screens/BookingConfirmationScreen';
@@ -22,7 +23,7 @@ const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => (
    <BookingProvider>
-    <Stack.Navigator initialRouteName="Admin" screenOptions={{ headerShown: true }}>
+    <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: true }}>
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="UserDashboardScreen" component={UserDashboardScreen} />

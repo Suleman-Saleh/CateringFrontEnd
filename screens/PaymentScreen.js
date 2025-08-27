@@ -1,5 +1,6 @@
-import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useLayoutEffect, useState } from 'react';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // for React Native
 import {
   Alert,
   KeyboardAvoidingView,
@@ -9,48 +10,59 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
+  ActivityIndicator
 } from 'react-native';
 
 import StepIndicator from 'react-native-step-indicator';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { useBooking } from './BookingContextScreen';
+
+// ⚠️ CHANGE THIS to your machine’s local IP (not localhost)
+const STRAPI_URL = 'http://localhost:1337';
+// const STRAPI_URL = "http://192.168.1.73:1337";
 
 const labels = ['Event Info', 'Services', 'Summary', 'Payment'];
 const icons = ['calendar', 'paint-brush', 'list-alt', 'credit-card'];
 
-  const customStyles = {
-    stepIndicatorSize: 30,
-    currentStepIndicatorSize: 40,
-    separatorStrokeWidth: 2,
-    currentStepStrokeWidth: 5,
-    stepStrokeCurrentColor: '#8852a9ff',
-    stepStrokeWidth: 5,
-    stepStrokeFinishedColor: 'white',
-    stepStrokeUnFinishedColor: 'grey',
-    separatorFinishedColor: 'white',
-    separatorUnFinishedColor: '#D1C4E9',
-    stepIndicatorFinishedColor: '#6A1B9A',
-    stepIndicatorUnFinishedColor: '#FFFFFF',
-    stepIndicatorCurrentColor: '#FFFFFF',
-    stepIndicatorLabelFontSize: 13,
-    currentStepIndicatorLabelFontSize: 13,
-    stepIndicatorLabelCurrentColor: '#6A1B9A',
-    stepIndicatorLabelFinishedColor: '#FFFFFF',
-    stepIndicatorLabelUnFinishedColor: '#D1C4E9',
-    labelColor: 'grey',
-    labelSize: 14,
-    finishedStepLabelColor: 'white',
-    currentStepLabelColor: 'white',
-  };
+const customStyles = {
+  stepIndicatorSize: 30,
+  currentStepIndicatorSize: 40,
+  separatorStrokeWidth: 2,
+  currentStepStrokeWidth: 5,
+  stepStrokeCurrentColor: '#8852a9ff',
+  stepStrokeWidth: 5,
+  stepStrokeFinishedColor: 'white',
+  stepStrokeUnFinishedColor: 'grey',
+  separatorFinishedColor: 'white',
+  separatorUnFinishedColor: '#D1C4E9',
+  stepIndicatorFinishedColor: '#6A1B9A',
+  stepIndicatorUnFinishedColor: '#FFFFFF',
+  stepIndicatorCurrentColor: '#FFFFFF',
+  stepIndicatorLabelFontSize: 13,
+  currentStepIndicatorLabelFontSize: 13,
+  stepIndicatorLabelCurrentColor: '#6A1B9A',
+  stepIndicatorLabelFinishedColor: '#FFFFFF',
+  stepIndicatorLabelUnFinishedColor: '#D1C4E9',
+  labelColor: 'grey',
+  labelSize: 14,
+  finishedStepLabelColor: 'white',
+  currentStepLabelColor: 'white',
+};
 
 const PaymentScreen = () => {
   const route = useRoute();
+  // Destructure params directly from the route object
+  const { customerId, eventTypeId, locationId, guestCount, bookingDate, bookingAddress } = route.params || {};
+
   const navigation = useNavigation();
+  const { booking, resetBooking } = useBooking();
 
   const [cardNumber, setCardNumber] = useState('');
   const [cardHolder, setCardHolder] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [cvv, setCvv] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -90,33 +102,105 @@ const PaymentScreen = () => {
     });
   }, [navigation]);
 
-  const handlePayment = () => {
-    if (!cardNumber || !cardHolder || !expiryDate || !cvv) {
-      Alert.alert('Missing Fields', 'Please enter all payment details.');
-      return;
+  const calculateTotalAmount = () => {
+    if (!booking || !booking.cartItems) return 0;
+    return booking.cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  };
+  
+const handlePayment = async () => {
+  console.log("--- Starting handlePayment function ---");
+  console.log("Received params:", { customerId, eventTypeId, locationId, guestCount, bookingDate, bookingAddress });
+
+  // ✅ Proper null/undefined check instead of falsy check
+  if (
+    customerId == null ||
+    eventTypeId == null ||
+    locationId == null ||
+    guestCount == null ||
+    bookingDate == null ||
+    !bookingAddress || bookingAddress.trim() === ""
+  ) {
+    Alert.alert("Error", "Missing booking details. Please go back and provide all required information.");
+    console.error("❌ Missing required booking details:", { customerId, eventTypeId, locationId, guestCount, bookingDate, bookingAddress });
+    return;
+  }
+
+  setIsProcessing(true);
+
+  try {
+    const bookingPayload = {
+      GuestCount: parseInt(guestCount, 10),
+      BookingDate: new Date(bookingDate).toISOString(),
+      BookingLocationAddress: bookingAddress,
+      customer: parseInt(customerId, 10),
+      event_type: parseInt(eventTypeId, 10),
+      location: parseInt(locationId, 10),
+    };
+
+    console.log("Sending booking payload:", JSON.stringify({ data: bookingPayload }, null, 2));
+
+    // Step 1: Create Booking
+    const bookingResponse = await fetch(`${STRAPI_URL}/api/bookings`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: bookingPayload }),
+    });
+
+    const bookingResult = await bookingResponse.json();
+    console.log("Received booking response:", bookingResult);
+
+    if (!bookingResponse.ok) {
+      throw new Error(bookingResult?.error?.message || "Booking creation failed");
     }
 
-    Alert.alert(
-      'Payment Successful',
-      'Your payment has been processed.',
-      [
-        {
-          text: 'OK',
-          onPress: () => {
-            navigation.navigate('SummaryScreen', {
-              ...(route.params || {}),
-              paymentInfo: {
-                cardHolder,
-                last4: cardNumber.slice(-4),
-                expiryDate,
-              },
-            });
-          },
-        },
-      ],
-      { cancelable: false }
-    );
-  };
+    const newBookingId = bookingResult.data.id;
+    console.log("✅ Booking created successfully with ID:", newBookingId);
+
+    // Step 2: Create Payment
+    const paymentPayload = {
+      PaymentStatus: "Paid",
+      Amount: calculateTotalAmount(),
+      PaymentDate: new Date().toISOString(),
+      booking: parseInt(newBookingId, 10),
+    };
+
+    console.log("Sending payment payload:", JSON.stringify({ data: paymentPayload }, null, 2));
+
+    const paymentResponse = await fetch(`${STRAPI_URL}/api/payments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: paymentPayload }),
+    });
+
+    const paymentResult = await paymentResponse.json();
+    console.log("Received payment response:", paymentResult);
+
+    if (!paymentResponse.ok) {
+      throw new Error(paymentResult?.error?.message || "Payment creation failed");
+    }
+
+    console.log("✅ Payment created successfully:", paymentResult.data.id);
+    Alert.alert("Success", "Booking and payment processed successfully!");
+    resetBooking?.(); // Clear booking context
+navigation.navigate("SummaryScreen", {
+  bookingId: newBookingId,
+  date: bookingDate,
+  guestCount: guestCount,
+  address: bookingAddress,
+  services: booking?.services || [], // if you have services array
+  totalPaid: calculateTotalAmount(),
+  paymentMethod: "Credit Card", // or dynamic
+});  } catch (error) {
+    console.error("❌ handlePayment error:", error.message);
+    Alert.alert("Payment Failed", error.message || "An unexpected error occurred. Please try again.");
+  } finally {
+    setIsProcessing(false);
+    console.log("--- Finished handlePayment function ---");
+  }
+};
+
+
+
 
   return (
     <KeyboardAvoidingView
@@ -132,20 +216,17 @@ const PaymentScreen = () => {
           renderStepIndicator={({ position, stepStatus }) => {
             const iconName = icons[position];
             const color =
-              stepStatus === 'current'
-                ? '#6A1B9A'
-                : stepStatus === 'finished'
-                  ? '#fff'
-                  : '#D1C4E9';
+              stepStatus === 'current' ? '#6A1B9A' :
+              stepStatus === 'finished' ? '#fff' :
+              '#D1C4E9';
             const bgColor =
-              stepStatus === 'current'
-                ? '#fff'
-                : stepStatus === 'finished'
-                  ? '#6A1B9A'
-                  : '#fff';
+              stepStatus === 'current' ? '#fff' :
+              stepStatus === 'finished' ? '#6A1B9A' :
+              '#fff';
 
             return (
               <View
+                key={position}
                 style={{
                   backgroundColor: bgColor,
                   width: 30,
@@ -164,14 +245,14 @@ const PaymentScreen = () => {
         <View style={styles.container}>
           <Text style={styles.title}>Payment Details</Text>
 
-         <Text style={styles.label}>Card Number</Text>
+          <Text style={styles.label}>Card Number</Text>
           <TextInput
             style={styles.input}
             keyboardType="number-pad"
             maxLength={19}
             value={cardNumber}
             onChangeText={(text) => {
-              const cleaned = text.replace(/\D+/g, '').slice(0, 16); 
+              const cleaned = text.replace(/\D+/g, '').slice(0, 16);
               const formatted = cleaned.match(/.{1,4}/g)?.join(' ') || '';
               setCardNumber(formatted);
             }}
@@ -197,14 +278,13 @@ const PaymentScreen = () => {
                 placeholder="MM/YY"
                 value={expiryDate}
                 onChangeText={(text) => {
-                  const cleaned = text.replace(/\D+/g, '').slice(0, 4); // Only digits, max 4
+                  const cleaned = text.replace(/\D+/g, '').slice(0, 4);
                   let formatted = cleaned;
                   if (cleaned.length >= 3) {
                     formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2)}`;
                   }
                   setExpiryDate(formatted);
                 }}
-
                 maxLength={5}
                 placeholderTextColor="#bbb"
               />
@@ -228,8 +308,13 @@ const PaymentScreen = () => {
             onPress={handlePayment}
             style={styles.payButton}
             activeOpacity={0.8}
+            disabled={isProcessing}
           >
-            <Text style={styles.payButtonText}>Pay & Confirm Booking</Text>
+            {isProcessing ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.payButtonText}>Pay & Confirm Booking</Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -240,14 +325,8 @@ const PaymentScreen = () => {
 export default PaymentScreen;
 
 const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-    backgroundColor: '#f6f8fa',
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    padding: 16,
-  },
+  flex: { flex: 1, backgroundColor: '#f6f8fa' },
+  scrollContainer: { flexGrow: 1, padding: 16 },
   container: {
     flexGrow: 1,
     padding: 20,
@@ -260,19 +339,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 5 },
     elevation: 5,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 24,
-    textAlign: 'center',
-    color: '#222',
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
-    color: '#444',
-    fontWeight: '600',
-  },
+  title: { fontSize: 24, fontWeight: '700', marginBottom: 24, textAlign: 'center', color: '#222' },
+  label: { fontSize: 16, marginBottom: 8, color: '#444', fontWeight: '600' },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -284,13 +352,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: '#222',
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  halfInput: {
-    flex: 0.48,
-  },
+  row: { flexDirection: 'row', justifyContent: 'space-between' },
+  halfInput: { flex: 0.48 },
   payButton: {
     backgroundColor: '#6A1B9A',
     paddingVertical: 16,
@@ -302,20 +365,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 5 },
     elevation: 3,
   },
-  payButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  headerButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  headerButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  payButtonText: { color: '#fff', fontSize: 18, fontWeight: '700', textAlign: 'center' },
+  headerButton: { paddingHorizontal: 12, paddingVertical: 6 },
+  headerButtonText: { fontSize: 16, fontWeight: '600' },
   logoutButtonHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -325,9 +377,5 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginRight: 10,
   },
-  logoutButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
+  logoutButtonText: { color: '#fff', fontSize: 14, fontWeight: '600' },
 });

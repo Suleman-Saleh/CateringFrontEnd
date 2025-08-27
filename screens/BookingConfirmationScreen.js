@@ -6,6 +6,7 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import StepIndicator from 'react-native-step-indicator';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -38,7 +39,7 @@ const customStyles = {
   currentStepLabelColor: '#6A1B9A',
 };
 
-const BookingSummaryScreen = () => {
+const BookingConfirmationScreen = () => {
   const { booking } = useBooking();
   const navigation = useNavigation();
 
@@ -78,18 +79,81 @@ const BookingSummaryScreen = () => {
     return sum + (isNaN(price) ? 0 : price * item.quantity);
   }, 0);
 
-  const handleProceedToPayment = () => {
-    navigation.navigate('PaymentScreen');
-  };
+const handleProceedToPayment = () => {
+  console.log("--- Starting handlePayment function ---");
+  console.log("Booking object:", booking);
+
+  const {
+    customerId,
+    eventTypeId,
+    locationId,
+    guestCount,
+    eventDateTime,
+    locationName,
+    eventLocation
+  } = booking;
+
+  // Handle booking location address
+  let bookingLocationAddress = "";
+  if (locationName) {
+    bookingLocationAddress = locationName;
+  } else if (eventLocation && typeof eventLocation === "object") {
+    bookingLocationAddress = `${eventLocation.latitude}, ${eventLocation.longitude}`;
+  }
+
+  console.log("Derived bookingLocationAddress:", bookingLocationAddress);
+  console.log("Type of bookingLocationAddress:", typeof bookingLocationAddress);
+
+  // Log individual checks
+  console.log("customerId valid?", customerId != null);
+  console.log("eventTypeId valid?", eventTypeId != null);
+  console.log("locationId valid?", locationId != null);
+  console.log("guestCount valid?", guestCount != null);
+  console.log("eventDateTime valid?", eventDateTime != null);
+  console.log("bookingLocationAddress valid?", bookingLocationAddress.trim() !== "");
+
+  // Proper null/undefined check
+  if (
+    customerId == null ||
+    eventTypeId == null ||
+    locationId == null ||
+    guestCount == null ||
+    eventDateTime == null ||
+    !bookingLocationAddress.trim()
+  ) {
+    Alert.alert(
+      'Missing Information',
+      'Some booking details are missing. Please go back and fill them out.'
+    );
+
+    console.error("❌ Missing required booking details:", {
+      customerId,
+      eventTypeId,
+      locationId,
+      guestCount,
+      eventDateTime,
+      bookingLocationAddress
+    });
+    return;
+  }
+
+  console.log("--- All required fields present. Navigating to PaymentScreen ---");
+
+  navigation.navigate('PaymentScreen', {
+    customerId,
+    eventTypeId,
+    locationId,
+    guestCount,
+    bookingDate: eventDateTime,
+    bookingAddress: bookingLocationAddress,
+  });
+};
 
   const eventDate = booking.eventDateTime ? new Date(booking.eventDateTime) : null;
 
-  const locationText =
-    booking.locationName
-      ? booking.locationName
-      : booking.eventLocation
-      ? `${booking.eventLocation.latitude.toFixed(4)}, ${booking.eventLocation.longitude.toFixed(4)}`
-      : 'N/A';
+  const locationText = typeof booking.eventLocation === 'object' && booking.eventLocation
+    ? `${booking.eventLocation.latitude.toFixed(4)}, ${booking.eventLocation.longitude.toFixed(4)}`
+    : booking.eventLocation || booking.locationName || 'N/A';
 
   return (
     <ScrollView
@@ -143,7 +207,7 @@ const BookingSummaryScreen = () => {
   );
 };
 
-export default BookingSummaryScreen;
+export default BookingConfirmationScreen;
 
 const styles = StyleSheet.create({
   container: {

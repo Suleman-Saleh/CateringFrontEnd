@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dimensions,
   LayoutAnimation,
@@ -24,10 +24,24 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 const { width } = Dimensions.get('window');
 
-export default function OptionsScreen({ navigation }) {
+export default function OptionsScreen({ navigation, route }) {
+  // Get customerId from the navigation route params.
+  const { customerId } = route.params || {};
+
   const [selectedTab, setSelectedTab] = useState('Decoration');
   const { updateBooking, booking } = useBooking();
   const { visitedDecoration, visitedUtensils, visitedFurniture, cartItems } = booking;
+
+  // ✅ FIX: Removed 'booking' from the dependency array to prevent the infinite loop.
+  // The hook now only runs when customerId or updateBooking change, which they won't on every render.
+  useEffect(() => {
+  if (customerId) {
+    updateBooking({ customerId });
+    console.log("Booking object updated with customerId:", customerId);
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [customerId]);
+
 
   const canProceed =
     visitedDecoration && visitedUtensils && visitedFurniture && cartItems.length > 0;
@@ -40,10 +54,6 @@ export default function OptionsScreen({ navigation }) {
 
   const labels = ['Event Info', 'Services', 'Summary', 'Payment'];
   const icons = ['calendar', 'paint-brush', 'list-alt', 'credit-card'];
-
-
-
-
 
   const customStyles = {
     stepIndicatorSize: 30,
@@ -168,7 +178,7 @@ export default function OptionsScreen({ navigation }) {
       {canProceed && (
         <TouchableOpacity
           style={styles.proceedButton}
-          onPress={() => navigation.navigate('BookingConfirmationScreen')}
+          onPress={() => navigation.navigate('BookingConfirmationScreen', { customerId })}
         >
           <Text style={styles.proceedText}>Continue to Summary</Text>
         </TouchableOpacity>
@@ -208,7 +218,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 14, // smaller pill width
-    paddingVertical: 10,    // smaller pill height
+    paddingVertical: 10,    // smaller pill height
     backgroundColor: '#E5E7EB',
     borderRadius: 20,
   },

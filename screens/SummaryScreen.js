@@ -1,5 +1,5 @@
-import { useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import React from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -12,24 +12,25 @@ import {
 import { useBooking } from './BookingContextScreen'; // adjust path
 
 const SummaryScreen = () => {
-  const { booking } = useBooking();
+  const { resetBooking } = useBooking();
   const navigation = useNavigation();
+  const route = useRoute();
 
-  const [bookingId, setBookingId] = useState('');
-
-  useEffect(() => {
-    const id = Math.random().toString(36).substring(2, 10).toUpperCase();
-    setBookingId(id);
-  }, []);
+  const {
+    bookingId,
+    grandTotal,
+    date,
+    guestCount,
+    address,
+    services,
+    totalPaid,
+    paymentMethod,
+  } = route.params || {};
 
   const handleFinish = () => {
-    navigation.navigate('Login'); // adjust route name if needed
+    resetBooking();
+    navigation.navigate('UserDashboardScreen');
   };
-
-  const grandTotal = booking.cartItems.reduce((sum, item) => {
-    const price = parseFloat(item.price);
-    return sum + (isNaN(price) ? 0 : price * item.quantity);
-  }, 0);
 
   return (
     <KeyboardAvoidingView
@@ -38,18 +39,55 @@ const SummaryScreen = () => {
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
-          <Text style={styles.title}>Thank You!</Text>
+          {/* ✅ Header */}
+          <Text style={styles.title}>Booking Confirmed 🎉</Text>
+          <Text style={styles.subtitle}>Your Booking Receipt</Text>
 
-          <View style={styles.messageBox}>
-            <Text style={styles.successText}>
-              🎉 Your booking was successful!
+          {/* ✅ Booking Details */}
+          <View style={styles.receiptBox}>
+            <Text style={styles.sectionHeader}>📌 Booking Details</Text>
+            <Text style={styles.row}>
+              Booking ID: <Text style={styles.value}>{bookingId || 'N/A'}</Text>
             </Text>
-            <Text style={styles.bookingIdText}>
-              Booking ID: <Text style={styles.bookingId}>{bookingId}</Text>
+            <Text style={styles.row}>
+              Date & Time: <Text style={styles.value}>{date || 'N/A'}</Text>
             </Text>
-            <Text style={styles.totalText}>Total Paid: ${grandTotal.toFixed(2)}</Text>
+            <Text style={styles.row}>
+              Guests: <Text style={styles.value}>{guestCount || 'N/A'}</Text>
+            </Text>
+            <Text style={styles.row}>
+              Address: <Text style={styles.value}>{address || 'N/A'}</Text>
+            </Text>
           </View>
 
+          {/* ✅ Services */}
+          <View style={styles.receiptBox}>
+            <Text style={styles.sectionHeader}>🛠 Services Summary</Text>
+            {services && services.length > 0 ? (
+              services.map((s, idx) => (
+                <Text key={idx} style={styles.row}>• {s}</Text>
+              ))
+            ) : (
+              <Text style={styles.row}>No services listed.</Text>
+            )}
+          </View>
+
+          {/* ✅ Payment Info */}
+          <View style={styles.receiptBox}>
+            <Text style={styles.sectionHeader}>💳 Payment</Text>
+            <Text style={styles.row}>
+              Total Paid:{' '}
+              <Text style={styles.value}>
+                ${totalPaid ? totalPaid.toFixed(2) : '0.00'}
+              </Text>
+            </Text>
+            <Text style={styles.row}>
+              Payment Method:{' '}
+              <Text style={styles.value}>{paymentMethod || 'N/A'}</Text>
+            </Text>
+          </View>
+
+          {/* ✅ Button */}
           <TouchableOpacity
             onPress={handleFinish}
             style={styles.homeButton}
@@ -66,14 +104,8 @@ const SummaryScreen = () => {
 export default SummaryScreen;
 
 const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-    backgroundColor: '#f6f8fa',
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    padding: 16,
-  },
+  flex: { flex: 1, backgroundColor: '#f6f8fa' },
+  scrollContainer: { flexGrow: 1, padding: 16 },
   container: {
     flexGrow: 1,
     padding: 20,
@@ -85,47 +117,46 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 5 },
     elevation: 5,
-    alignItems: 'center',
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
-    marginBottom: 24,
-    color: '#222',
+    marginBottom: 6,
+    color: '#2c3e50',
     textAlign: 'center',
   },
-  messageBox: {
-    backgroundColor: '#E8F5E9',
-    padding: 16,
-    borderRadius: 10,
-    marginBottom: 24,
-    alignItems: 'center',
-    width: '100%',
-  },
-  successText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#2E7D32',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  bookingIdText: {
+  subtitle: {
     fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 10,
+    marginBottom: 20,
+    color: '#7f8c8d',
+    textAlign: 'center',
   },
-  bookingId: {
-    fontWeight: '700',
-    color: '#388E3C',
+  receiptBox: {
+    backgroundColor: '#F9F9F9',
+    padding: 14,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
-  totalText: {
+  sectionHeader: {
     fontSize: 18,
     fontWeight: '700',
+    marginBottom: 8,
+    color: '#6A1B9A',
+  },
+  row: {
+    fontSize: 16,
+    marginBottom: 6,
+    color: '#333',
+  },
+  value: {
+    fontWeight: '600',
     color: '#000',
   },
   homeButton: {
     backgroundColor: '#6A1B9A',
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRadius: 10,
     width: '100%',
     shadowColor: '#6A1B9A',
@@ -133,6 +164,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
     elevation: 3,
+    marginTop: 10,
   },
   homeButtonText: {
     color: '#fff',

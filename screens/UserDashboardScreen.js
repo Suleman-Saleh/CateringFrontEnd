@@ -1,4 +1,3 @@
-
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
@@ -15,10 +14,13 @@ const events = [
   { id: '2', title: 'Wedding Reception', date: 'July 20, 2024', status: 'Pending' },
 ];
 
+
 const UserDashboardScreen = ({ route }) => {
   const navigation = useNavigation();
   const { userEmail } = route.params || {};
   const [userName, setUserName] = useState('');
+  // ✅ FIX: Moved the useState hook inside the component function
+  const [customerId, setCustomerId] = useState(null);
 
   const scaleAnimRefs = useRef(quickActions.map(() => new Animated.Value(1)));
   const eventAnimRefs = useRef(events.map(() => ({
@@ -27,34 +29,32 @@ const UserDashboardScreen = ({ route }) => {
   })));
 
   useEffect(() => {
-    if (userEmail) {
-      const safeEmail = userEmail.trim().toLowerCase();
-      fetch(`http://localhost:1337/api/customers?filters[Email][$eq]=${safeEmail}&publicationState=live`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.data && data.data.length > 0) {
-            setUserName(data.data[0].Name);
-          } else {
-            console.log('No customer found with email:', safeEmail);
-          }
-        })
-        .catch(err => console.log('Fetch error:', err));
-    }
+  if (userEmail) {
+    const safeEmail = userEmail.trim().toLowerCase();
+    fetch(`http://localhost:1337/api/customers?filters[Email][$eq]=${safeEmail}&publicationState=live`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.data && data.data.length > 0) {
+          const customer = data.data[0];
+          setUserName(customer.Name);
 
-    eventAnimRefs.current.forEach((anim, index) => {
-      Animated.parallel([
-        Animated.timing(anim.fade, { toValue: 1, duration: 500 + index * 100, useNativeDriver: true }),
-        Animated.timing(anim.translateY, { toValue: 0, duration: 500 + index * 100, useNativeDriver: true }),
-      ]).start();
-    });
-  }, [userEmail]);
+          // ✅ Store customerId for later navigation
+          setCustomerId(customer.id);
+        } else {
+          console.log('No customer found with email:', safeEmail);
+        }
+      })
+      .catch(err => console.log('Fetch error:', err));
+  }
+}, [userEmail]);
+
 
   const handlePressAction = (index, action) => {
     Animated.sequence([
       Animated.timing(scaleAnimRefs.current[index], { toValue: 0.95, duration: 100, useNativeDriver: true }),
       Animated.timing(scaleAnimRefs.current[index], { toValue: 1, duration: 100, useNativeDriver: true }),
     ]).start(() => {
-      if (action.action === 'newEvent') navigation.navigate('EventInfoScreen');
+      if (action.action === 'newEvent') navigation.navigate('EventInfoScreen',{customerId});
       else if (action.action === 'viewEvents') alert('View Events clicked');
       else if (action.action === 'settings') alert('Settings clicked');
     });

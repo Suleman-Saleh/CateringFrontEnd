@@ -1,14 +1,15 @@
-import React, { createContext, useContext, useState } from 'react';
+// BookingContext.js
+import React, { createContext, useContext, useState } from "react";
 
 // Create Context
 const BookingContext = createContext();
 
 // Provider Component
 export const BookingProvider = ({ children }) => {
-  const [booking, setBooking] = useState({
-    eventType: '',
-    eventDateTime: '',
-    eventLocation: null,
+  const initialBookingState = {
+    eventType: "",
+    eventDateTime: "",
+    eventLocation: "",
     furniture: null,
     utensils: null,
     decoration: null,
@@ -18,77 +19,67 @@ export const BookingProvider = ({ children }) => {
     visitedFurniture: false,
     visitedUtensils: false,
     visitedDecoration: false,
-  });
+  };
 
-  // Update multiple booking fields including visited flags
+  const [booking, setBooking] = useState(initialBookingState);
+
+  /** ✅ Update multiple booking fields including visited flags */
   const updateBooking = (updates) => {
     setBooking((prev) => ({ ...prev, ...updates }));
   };
 
-  // Add item to cart (increment quantity if exists)
+  /** ✅ Add item to cart (increment quantity if exists) */
   const addToCart = (newItem) => {
-  const itemWithQuantity = {
-    ...newItem,
-    quantity: newItem.quantity ?? 1, // fallback to 1 if undefined
+    const itemWithQuantity = {
+      ...newItem,
+      quantity: newItem.quantity ?? 1, // fallback to 1 if undefined
+    };
+
+    setBooking((prev) => {
+      const existingItemIndex = prev.cartItems.findIndex(
+        (item) => item.id === itemWithQuantity.id
+      );
+
+      let updatedCart;
+      if (existingItemIndex !== -1) {
+        updatedCart = [...prev.cartItems];
+        updatedCart[existingItemIndex].quantity += itemWithQuantity.quantity;
+      } else {
+        updatedCart = [...prev.cartItems, itemWithQuantity];
+      }
+
+      return { ...prev, cartItems: updatedCart };
+    });
   };
 
-  setBooking((prev) => {
-    const existingItemIndex = prev.cartItems.findIndex(
-      (item) => item.id === itemWithQuantity.id
-    );
-
-    let updatedCart;
-    if (existingItemIndex !== -1) {
-      updatedCart = [...prev.cartItems];
-      updatedCart[existingItemIndex].quantity += itemWithQuantity.quantity;
-    } else {
-      updatedCart = [...prev.cartItems, itemWithQuantity];
-    }
-
-    return { ...prev, cartItems: updatedCart };
-  });
-};
-
-
-  // Remove item from cart
+  /** ✅ Remove item from cart */
   const removeFromCart = (itemId) => {
     setBooking((prev) => ({
       ...prev,
-      cartItems: prev.cartItems.filter(item => item.id !== itemId),
+      cartItems: prev.cartItems.filter((item) => item.id !== itemId),
     }));
   };
 
-  // Update quantity of an item in cart
+  /** ✅ Update quantity of an item in cart */
   const updateCartQuantity = (itemId, quantity) => {
     setBooking((prev) => {
-      const updatedCart = prev.cartItems.map(item =>
+      const updatedCart = prev.cartItems.map((item) =>
         item.id === itemId ? { ...item, quantity } : item
       );
       return { ...prev, cartItems: updatedCart };
     });
   };
 
-  // Reset booking to initial state (e.g., after successful booking)
+  /** ✅ Reset booking to initial state (e.g., after successful booking) */
   const resetBooking = () => {
-    setBooking({
-      eventType: '',
-      eventDateTime: '',
-      eventLocation: null,
-      furniture: null,
-      utensils: null,
-      decoration: null,
-      cartItems: [],
-      visitedFurniture: false,
-      visitedUtensils: false,
-      visitedDecoration: false,
-    });
+    setBooking(initialBookingState);
   };
 
-  // Check if booking is complete (all three categories selected)
+  /** ✅ Check if booking is complete (all three categories selected) */
   const isBookingComplete = () =>
     booking.furniture && booking.utensils && booking.decoration;
 
-  // Check if all categories have been visited
+  /** ✅ Check if all categories have been visited */
   const allVisited =
     booking.visitedFurniture &&
     booking.visitedUtensils &&
@@ -112,11 +103,11 @@ export const BookingProvider = ({ children }) => {
   );
 };
 
-// Custom hook to use booking context safely
+// ✅ Custom hook to use booking context safely
 export const useBooking = () => {
   const context = useContext(BookingContext);
   if (!context) {
-    throw new Error('useBooking must be used within a BookingProvider');
+    throw new Error("useBooking must be used within a BookingProvider");
   }
   return context;
 };

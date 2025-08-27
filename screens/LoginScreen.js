@@ -2,6 +2,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
+import AsyncStorage from "@react-native-async-storage/async-storage"; // add this at top
 import {
   ActivityIndicator,
   Alert,
@@ -48,55 +49,81 @@ const LoginScreen = ({ navigation }) => {
   }, []);
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please enter both email and password.');
-      return;
+  if (!email || !password) {
+    Alert.alert("Error", "Please enter both email and password.");
+    return;
+  }
+
+  setLoading(true);
+  console.log("🔎 Logging in with:", email);
+
+  try {
+    const response = await fetch(
+      `${STRAPI_URL}/api/credentials?filters[Email][$eq]=${email}&populate=RoleID`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Authentication failed: ${response.status}`);
     }
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `${STRAPI_URL}/api/credentials?filters[Email][$eq]=${email}&populate=RoleID`
-      );
 
-      if (!response.ok) {
-        throw new Error(`Authentication failed: ${response.status}`);
-      }
+    const data = await response.json();
+    console.log("✅ Credentials Response:", JSON.stringify(data, null, 2));
 
-      const data = await response.json();
+    if (data.data && data.data.length > 0) {
+      const userCredential = data.data[0];
 
-      if (data.data && data.data.length > 0) {
-        const userCredential = data.data[0];
-        const storedHashedPassword = userCredential.Password;
-        const roleName = userCredential.RoleID?.RoleName;
+      // Access directly (since Strapi doesn’t wrap with attributes)
+      const storedHashedPassword = userCredential.Password;
+      const roleName = userCredential.RoleID?.RoleName;
 
-        // Compare passwords
-        const passwordMatch = bcrypt.compareSync(password, storedHashedPassword);
+      console.log("🗝️ Stored Password:", storedHashedPassword);
+      console.log("🧑 Role Name:", roleName);
 
-        if (passwordMatch) {
-          if (roleName) {
-            const lowerCaseRole = roleName.toLowerCase();
-            if (lowerCaseRole === 'customer') {
-              navigation.navigate('UserDashboardScreen', { userEmail: email });
-            } else if (lowerCaseRole === 'admin') {
-              navigation.navigate('AdminDashboardScreen');
-            } else {
-              Alert.alert('Login Failed', 'Unknown role. Please contact support.');
-            }
+      // Compare password
+      const passwordMatch = bcrypt.compareSync(password, storedHashedPassword);
+      console.log("🔑 Password Match:", passwordMatch);
+
+      if (passwordMatch) {
+        if (roleName) {
+          const lowerCaseRole = roleName.toLowerCase();
+
+          if (lowerCaseRole === "customer") {
+            // ✅ Save customerId + email for later use (like in PaymentScreen)
+            await AsyncStorage.setItem("customerId", String(userCredential.id));
+            await AsyncStorage.setItem("userEmail", email);
+
+            console.log("💾 Saved to AsyncStorage:", {
+              customerId: userCredential.id,
+              userEmail: email,
+            });
+
+            navigation.navigate("UserDashboardScreen", { 
+              userEmail: email,
+              userId: userCredential.id, // also pass via navigation
+            });
+
+          } else if (lowerCaseRole === "admin") {
+            navigation.navigate("AdminDashboardScreen");
           } else {
-            Alert.alert('Login Failed', 'User role not found.');
+            Alert.alert("Login Failed", "Unknown role. Please contact support.");
           }
         } else {
-          Alert.alert('Login Failed', 'Invalid email or password.');
+          Alert.alert("Login Failed", "User role not found.");
         }
       } else {
-        Alert.alert('Login Failed', 'Invalid email or password.');
+        Alert.alert("Login Failed", "Invalid email or password.");
       }
-    } catch (err) {
-      Alert.alert('Login Failed', err.message || 'Unexpected error.');
-    } finally {
-      setLoading(false);
+    } else {
+      Alert.alert("Login Failed", "Invalid email or password.");
     }
-  };
+  } catch (err) {
+    console.log("❌ handleLogin error:", err);
+    Alert.alert("Login Failed", err.message || "Unexpected error.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <SafeAreaView style={styles.container}>
