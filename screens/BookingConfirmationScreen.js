@@ -1,10 +1,12 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import {
-  ScrollView,
   StyleSheet,
   Text,
+  View,
+  ScrollView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import StepIndicator from 'react-native-step-indicator';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -13,29 +15,28 @@ import { useBooking } from './BookingContextScreen';
 const labels = ['Event Info', 'Services', 'Summary', 'Payment'];
 const icons = ['calendar', 'paint-brush', 'list-alt', 'credit-card'];
 
-// Updated Step Indicator styles to match login blue theme
 const customStyles = {
   stepIndicatorSize: 30,
   currentStepIndicatorSize: 40,
   separatorStrokeWidth: 2,
   currentStepStrokeWidth: 3,
-  stepStrokeCurrentColor: '#4A90E2',
+  stepStrokeCurrentColor: '#6A1B9A',
   stepStrokeWidth: 3,
-  stepStrokeFinishedColor: '#4A90E2',
-  stepStrokeUnFinishedColor: '#B0C4DE',
-  separatorFinishedColor: '#4A90E2',
-  separatorUnFinishedColor: '#B0C4DE',
-  stepIndicatorFinishedColor: '#4A90E2',
+  stepStrokeFinishedColor: '#6A1B9A',
+  stepStrokeUnFinishedColor: '#D1C4E9',
+  separatorFinishedColor: '#6A1B9A',
+  separatorUnFinishedColor: '#D1C4E9',
+  stepIndicatorFinishedColor: '#6A1B9A',
   stepIndicatorUnFinishedColor: '#FFFFFF',
   stepIndicatorCurrentColor: '#FFFFFF',
   stepIndicatorLabelFontSize: 13,
   currentStepIndicatorLabelFontSize: 13,
-  stepIndicatorLabelCurrentColor: '#4A90E2',
+  stepIndicatorLabelCurrentColor: '#6A1B9A',
   stepIndicatorLabelFinishedColor: '#FFFFFF',
-  stepIndicatorLabelUnFinishedColor: '#B0C4DE',
-  labelColor: '#666',
+  stepIndicatorLabelUnFinishedColor: '#D1C4E9',
+  labelColor: '#999999',
   labelSize: 13,
-  currentStepLabelColor: '#2C3E50',
+  currentStepLabelColor: '#6A1B9A',
 };
 
 const BookingConfirmationScreen = () => {
@@ -46,15 +47,15 @@ const BookingConfirmationScreen = () => {
     const iconName = icons[position];
     const color =
       stepStatus === 'current'
-        ? '#4A90E2'
+        ? '#6A1B9A'
         : stepStatus === 'finished'
         ? '#fff'
-        : '#B0C4DE';
+        : '#D1C4E9';
     const bgColor =
       stepStatus === 'current'
         ? '#fff'
         : stepStatus === 'finished'
-        ? '#4A90E2'
+        ? '#6A1B9A'
         : '#fff';
 
     return (
@@ -177,12 +178,7 @@ const handleProceedToPayment = () => {
         <Text style={styles.cardTitle}>Event Details</Text>
         <Text>Event Type: {booking.eventType || 'N/A'}</Text>
         <Text>Date: {eventDate ? eventDate.toLocaleDateString() : 'N/A'}</Text>
-        <Text>
-          Time:{" "}
-          {eventDate
-            ? eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            : 'N/A'}
-        </Text>
+        <Text>Time: {eventDate ? eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}</Text>
         <Text>Location: {locationText}</Text>
       </View>
 
@@ -228,7 +224,6 @@ const styles = StyleSheet.create({
     marginTop: 30,
     marginBottom: 8,
     textAlign: 'center',
-    color: '#2C3E50', // dark blue for title
   },
   subtitle: {
     fontSize: 14,
@@ -247,10 +242,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 16,
     marginBottom: 10,
-    color: '#2C3E50', // consistent dark blue
   },
   totalBox: {
-    backgroundColor: '#EAF3FC',
+    backgroundColor: '#F3E5F5',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -262,11 +256,11 @@ const styles = StyleSheet.create({
   amount: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#4A90E2', // login blue
+    color: '#6A1B9A',
   },
   button: {
     marginTop: 20,
-    backgroundColor: '#4A90E2', // login/register blue
+    backgroundColor: '#6A1B9A',
     paddingVertical: 16,
     borderRadius: 10,
     alignItems: 'center',

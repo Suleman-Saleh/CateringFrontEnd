@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useLayoutEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // for React Native
 import {
   Alert,
   KeyboardAvoidingView,
@@ -25,30 +25,30 @@ const STRAPI_URL = 'http://localhost:1337';
 const labels = ['Event Info', 'Services', 'Summary', 'Payment'];
 const icons = ['calendar', 'paint-brush', 'list-alt', 'credit-card'];
 
-  const customStyles = {
-    stepIndicatorSize: 30,
-    currentStepIndicatorSize: 40,
-    separatorStrokeWidth: 2,
-    currentStepStrokeWidth: 5,
-    stepStrokeCurrentColor: '#8852a9ff',
-    stepStrokeWidth: 5,
-    stepStrokeFinishedColor: 'white',
-    stepStrokeUnFinishedColor: 'grey',
-    separatorFinishedColor: 'white',
-    separatorUnFinishedColor: '#D1C4E9',
-    stepIndicatorFinishedColor: '#6A1B9A',
-    stepIndicatorUnFinishedColor: '#FFFFFF',
-    stepIndicatorCurrentColor: '#FFFFFF',
-    stepIndicatorLabelFontSize: 13,
-    currentStepIndicatorLabelFontSize: 13,
-    stepIndicatorLabelCurrentColor: '#6A1B9A',
-    stepIndicatorLabelFinishedColor: '#FFFFFF',
-    stepIndicatorLabelUnFinishedColor: '#D1C4E9',
-    labelColor: 'grey',
-    labelSize: 14,
-    finishedStepLabelColor: 'white',
-    currentStepLabelColor: 'white',
-  };
+const customStyles = {
+  stepIndicatorSize: 30,
+  currentStepIndicatorSize: 40,
+  separatorStrokeWidth: 2,
+  currentStepStrokeWidth: 5,
+  stepStrokeCurrentColor: '#8852a9ff',
+  stepStrokeWidth: 5,
+  stepStrokeFinishedColor: 'white',
+  stepStrokeUnFinishedColor: 'grey',
+  separatorFinishedColor: 'white',
+  separatorUnFinishedColor: '#D1C4E9',
+  stepIndicatorFinishedColor: '#6A1B9A',
+  stepIndicatorUnFinishedColor: '#FFFFFF',
+  stepIndicatorCurrentColor: '#FFFFFF',
+  stepIndicatorLabelFontSize: 13,
+  currentStepIndicatorLabelFontSize: 13,
+  stepIndicatorLabelCurrentColor: '#6A1B9A',
+  stepIndicatorLabelFinishedColor: '#FFFFFF',
+  stepIndicatorLabelUnFinishedColor: '#D1C4E9',
+  labelColor: 'grey',
+  labelSize: 14,
+  finishedStepLabelColor: 'white',
+  currentStepLabelColor: 'white',
+};
 
 const PaymentScreen = () => {
   const route = useRoute();
@@ -72,9 +72,7 @@ const PaymentScreen = () => {
           style={styles.headerButton}
           activeOpacity={0.7}
         >
-          <Text style={[styles.headerButtonText, { color: '#4A90E2' }]}>
-            Back
-          </Text>
+          <Text style={[styles.headerButtonText, { color: '#007AFF' }]}>Back</Text>
         </TouchableOpacity>
       ),
       headerRight: () => (
@@ -97,12 +95,7 @@ const PaymentScreen = () => {
           style={styles.logoutButtonHeader}
           activeOpacity={0.8}
         >
-          <Icon
-            name="sign-out"
-            size={16}
-            color="#fff"
-            style={{ marginRight: 6 }}
-          />
+          <Icon name="sign-out" size={16} color="#fff" style={{ marginRight: 6 }} />
           <Text style={styles.logoutButtonText}>Logout</Text>
         </TouchableOpacity>
       ),
@@ -210,12 +203,6 @@ navigation.navigate("SummaryScreen", {
 
 
   return (
-    <LinearGradient
-          colors={['#4A90E2', '#2C3E50']}
-          start={{ x: 0, y: 0 }}   // left side
-      end={{ x: 1, y: 0 }} // 🔵 unified blue gradient
-          style={styles.container}
-        >
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.flex}
@@ -229,17 +216,13 @@ navigation.navigate("SummaryScreen", {
           renderStepIndicator={({ position, stepStatus }) => {
             const iconName = icons[position];
             const color =
-              stepStatus === 'current'
-                ? '#6A1B9A'
-                : stepStatus === 'finished'
-                  ? '#fff'
-                  : '#D1C4E9';
+              stepStatus === 'current' ? '#6A1B9A' :
+              stepStatus === 'finished' ? '#fff' :
+              '#D1C4E9';
             const bgColor =
-              stepStatus === 'current'
-                ? '#fff'
-                : stepStatus === 'finished'
-                  ? '#6A1B9A'
-                  : '#fff';
+              stepStatus === 'current' ? '#fff' :
+              stepStatus === 'finished' ? '#6A1B9A' :
+              '#fff';
 
             return (
               <View
@@ -336,25 +319,18 @@ navigation.navigate("SummaryScreen", {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
-    </LinearGradient>
   );
 };
 
 export default PaymentScreen;
 
 const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-    backgroundColor: '#f6f8fa',
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    padding: 16,
-  },
+  flex: { flex: 1, backgroundColor: '#f6f8fa' },
+  scrollContainer: { flexGrow: 1, padding: 16 },
   container: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#fff',
     borderRadius: 12,
     marginTop: 20,
     shadowColor: '#000',
@@ -363,38 +339,27 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 5 },
     elevation: 5,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 24,
-    textAlign: 'center',
-    color: '#222',
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
-    color: '#444',
-    fontWeight: '600',
-  },
+  title: { fontSize: 24, fontWeight: '700', marginBottom: 24, textAlign: 'center', color: '#222' },
+  label: { fontSize: 16, marginBottom: 8, color: '#444', fontWeight: '600' },
   input: {
     borderWidth: 1,
-    borderColor: '#D1E3F8',
+    borderColor: '#ccc',
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    backgroundColor: '#F3F7FC',
+    backgroundColor: '#fafafa',
     marginBottom: 20,
-    color: '#2C3E50',
+    color: '#222',
   },
   row: { flexDirection: 'row', justifyContent: 'space-between' },
   halfInput: { flex: 0.48 },
   payButton: {
-    backgroundColor: '#4A90E2',
+    backgroundColor: '#6A1B9A',
     paddingVertical: 16,
     borderRadius: 10,
     marginTop: 20,
-    shadowColor: '#4A90E2',
+    shadowColor: '#6A1B9A',
     shadowOpacity: 0.4,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
@@ -406,7 +371,7 @@ const styles = StyleSheet.create({
   logoutButtonHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2C3E50',
+    backgroundColor: '#6A1B9A',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,

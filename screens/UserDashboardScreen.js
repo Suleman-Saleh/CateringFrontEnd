@@ -1,14 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Animated,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Animated, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const quickActions = [
   { id: '1', label: '+ New Event', type: 'primary', action: 'newEvent' },
@@ -30,48 +23,36 @@ const UserDashboardScreen = ({ route }) => {
   const [customerId, setCustomerId] = useState(null);
 
   const scaleAnimRefs = useRef(quickActions.map(() => new Animated.Value(1)));
-  const eventAnimRefs = useRef(
-    events.map(() => ({
-      fade: new Animated.Value(0),
-      translateY: new Animated.Value(30),
-    }))
-  );
+  const eventAnimRefs = useRef(events.map(() => ({
+    fade: new Animated.Value(0),
+    translateY: new Animated.Value(30),
+  })));
 
   useEffect(() => {
-    if (userEmail) {
-      const safeEmail = userEmail.trim().toLowerCase();
-      fetch(`http://localhost:1337/api/customers?filters[Email][$eq]=${safeEmail}&publicationState=live`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.data && data.data.length > 0) {
-            setUserName(data.data[0].Name);
-          } else {
-            console.log('No customer found with email:', safeEmail);
-          }
-        })
-        .catch(err => console.log('Fetch error:', err));
-    }
+  if (userEmail) {
+    const safeEmail = userEmail.trim().toLowerCase();
+    fetch(`http://localhost:1337/api/customers?filters[Email][$eq]=${safeEmail}&publicationState=live`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.data && data.data.length > 0) {
+          const customer = data.data[0];
+          setUserName(customer.Name);
 
-    eventAnimRefs.current.forEach((anim, index) => {
-      Animated.parallel([
-        Animated.timing(anim.fade, { toValue: 1, duration: 500 + index * 100, useNativeDriver: true }),
-        Animated.timing(anim.translateY, { toValue: 0, duration: 500 + index * 100, useNativeDriver: true }),
-      ]).start();
-    });
-  }, [userEmail]);
+          // ✅ Store customerId for later navigation
+          setCustomerId(customer.id);
+        } else {
+          console.log('No customer found with email:', safeEmail);
+        }
+      })
+      .catch(err => console.log('Fetch error:', err));
+  }
+}, [userEmail]);
+
 
   const handlePressAction = (index, action) => {
     Animated.sequence([
-      Animated.timing(scaleAnimRefs.current[index], {
-        toValue: 0.95,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnimRefs.current[index], {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }),
+      Animated.timing(scaleAnimRefs.current[index], { toValue: 0.95, duration: 100, useNativeDriver: true }),
+      Animated.timing(scaleAnimRefs.current[index], { toValue: 1, duration: 100, useNativeDriver: true }),
     ]).start(() => {
       if (action.action === 'newEvent') navigation.navigate('EventInfoScreen',{customerId});
       else if (action.action === 'viewEvents') alert('View Events clicked');
@@ -84,23 +65,10 @@ const UserDashboardScreen = ({ route }) => {
     return (
       <Animated.View
         key={action.id}
-        style={[
-          styles.actionTile,
-          action.type === 'primary' && styles.primaryActionTile,
-          { transform: [{ scale: scaleAnim }] },
-        ]}
+        style={[styles.actionTile, action.type === 'primary' && styles.primaryActionTile, { transform: [{ scale: scaleAnim }] }]}
       >
-        <TouchableOpacity
-          onPress={() => handlePressAction(index, action)}
-          activeOpacity={0.8}
-        >
-          <Text
-            style={
-              action.type === 'primary'
-                ? styles.primaryActionText
-                : styles.secondaryActionText
-            }
-          >
+        <TouchableOpacity onPress={() => handlePressAction(index, action)} activeOpacity={0.8}>
+          <Text style={action.type === 'primary' ? styles.primaryActionText : styles.secondaryActionText}>
             {action.label}
           </Text>
         </TouchableOpacity>
@@ -111,29 +79,11 @@ const UserDashboardScreen = ({ route }) => {
   const renderEvent = ({ item, index }) => {
     const anim = eventAnimRefs.current[index];
     return (
-      <Animated.View
-        style={[
-          styles.eventCard,
-          { opacity: anim.fade, transform: [{ translateY: anim.translateY }] },
-        ]}
-      >
+      <Animated.View style={[styles.eventCard, { opacity: anim.fade, transform: [{ translateY: anim.translateY }] }]}>
         <Text style={styles.eventTitle}>{item.title}</Text>
         <Text style={styles.eventDate}>{item.date}</Text>
-        <View
-          style={[
-            styles.statusBadge,
-            item.status === 'Confirmed'
-              ? styles.statusConfirmed
-              : styles.statusPending,
-          ]}
-        >
-          <Text
-            style={
-              item.status === 'Confirmed'
-                ? styles.statusTextConfirmed
-                : styles.statusTextPending
-            }
-          >
+        <View style={[styles.statusBadge, item.status === 'Confirmed' ? styles.statusConfirmed : styles.statusPending]}>
+          <Text style={item.status === 'Confirmed' ? styles.statusTextConfirmed : styles.statusTextPending}>
             {item.status}
           </Text>
         </View>
@@ -148,134 +98,89 @@ const UserDashboardScreen = ({ route }) => {
   };
 
   return (
-    <LinearGradient
-      colors={['#4A90E2', '#2C3E50']}// same as SummaryScreen gradient
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={{ flex: 1 }}
-    >
-      <FlatList
-        data={events}
-        renderItem={renderEvent}
-        keyExtractor={item => item.id}
-        ListHeaderComponent={
-          <>
-            <View style={styles.headerCard}>
-              <Text style={styles.headerTitle}>
-                Welcome{userName ? `, ${userName}` : ''}
-              </Text>
-            </View>
-
-            <View style={styles.quickActionsRow}>
-              {quickActions.map((action, index) =>
-                renderQuickAction(action, index)
-              )}
-            </View>
-
-            <Text style={styles.sectionTitle}>Recent Events</Text>
-          </>
-        }
-        ListFooterComponent={
-          <View style={styles.statsContainer}>
-            <Text style={styles.sectionTitleDark}>Statistics</Text>
-            <Text style={styles.statText}>Total Events: {stats.total}</Text>
-            <Text style={[styles.statText, styles.confirmedText]}>
-              Confirmed: {stats.confirmed}
+    <FlatList
+      data={events}
+      renderItem={renderEvent}
+      keyExtractor={item => item.id}
+      ListHeaderComponent={
+        <>
+          <LinearGradient colors={['#9C27B0', '#7B1FA2']} style={styles.headerGradient}>
+            <Text style={styles.headerTitle}>
+              Welcome{userName ? `, ${userName}` : ''}
             </Text>
-            <Text style={[styles.statText, styles.pendingText]}>
-              Pending: {stats.pending}
-            </Text>
+          </LinearGradient>
+
+          <View style={styles.quickActionsRow}>
+            {quickActions.map((action, index) => renderQuickAction(action, index))}
           </View>
-        }
-        contentContainerStyle={styles.contentContainer}
-      />
-    </LinearGradient>
+
+          <Text style={styles.sectionTitle}>Recent Events</Text>
+        </>
+      }
+      ListFooterComponent={
+        <View style={styles.statsContainer}>
+          <Text style={styles.sectionTitle}>Statistics</Text>
+          <Text style={styles.statText}>Total Events: {stats.total}</Text>
+          <Text style={[styles.statText, styles.confirmedText]}>Confirmed: {stats.confirmed}</Text>
+          <Text style={[styles.statText, styles.pendingText]}>Pending: {stats.pending}</Text>
+        </View>
+      }
+      contentContainerStyle={styles.contentContainer}
+    />
   );
 };
 
 const styles = StyleSheet.create({
-  contentContainer: { padding: 16, paddingBottom: 50 },
-  headerCard: {
-    height: 150,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 16,
-    marginBottom: 16,
-    backgroundColor: '#EAF2FA', // updated soft light card background
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#1F2937' },
-  quickActionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
+  contentContainer: { padding: 16, backgroundColor: '#F9FAFB', paddingBottom: 50 },
+  headerGradient: { height: 150, justifyContent: 'center', alignItems: 'center', borderRadius: 12, marginBottom: 16 },
+  headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#FFFFFF' },
+  quickActionsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 },
   actionTile: {
     flex: 1,
     padding: 16,
     borderRadius: 12,
-    backgroundColor: '#EAF2FA', // updated soft light card background
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
     alignItems: 'center',
     marginHorizontal: 4,
     shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  primaryActionTile: {
-    backgroundColor: '#1565C0', // strong blue for primary
-  },
+  primaryActionTile: { backgroundColor: '#7B1FA2', borderColor: '#7B1FA2' },
   primaryActionText: { color: '#FFFFFF', fontWeight: '600' },
   secondaryActionText: { color: '#1F2937', fontWeight: '500' },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 16,
-  },
-  sectionTitleDark: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 12,
-  },
+  sectionTitle: { fontSize: 18, fontWeight: '600', color: '#1F2937', marginBottom: 16 },
   eventCard: {
-    backgroundColor: '#EAF2FA', // updated soft light card background
+    backgroundColor: '#FFFFFF',
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
   },
   eventTitle: { fontSize: 16, fontWeight: '600', color: '#111827' },
-  eventDate: { fontSize: 13, color: '#1F2937', marginTop: 2 },
-  statusBadge: {
-    marginTop: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 999,
-    alignSelf: 'flex-start',
-  },
+  eventDate: { fontSize: 13, color: '#6B7280', marginTop: 2 },
+  statusBadge: { marginTop: 8, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999, alignSelf: 'flex-start' },
   statusConfirmed: { backgroundColor: '#D1FAE5' },
   statusPending: { backgroundColor: '#FEF3C7' },
   statusTextConfirmed: { fontSize: 12, fontWeight: '500', color: '#065F46' },
   statusTextPending: { fontSize: 12, fontWeight: '500', color: '#92400E' },
   statsContainer: {
-    backgroundColor: '#EAF2FA', // updated soft light card background
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
     marginTop: 16,
   },
-  statText: { fontSize: 14, color: '#111827', marginBottom: 8 },
+  statText: { fontSize: 14, color: '#374151', marginBottom: 8 },
   confirmedText: { color: '#047857' },
   pendingText: { color: '#B45309' },
 });

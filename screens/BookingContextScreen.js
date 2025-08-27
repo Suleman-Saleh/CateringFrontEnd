@@ -19,7 +19,9 @@ export const BookingProvider = ({ children }) => {
     visitedFurniture: false,
     visitedUtensils: false,
     visitedDecoration: false,
-  });
+  };
+
+  const [booking, setBooking] = useState(initialBookingState);
 
   /** ✅ Update multiple booking fields including visited flags */
   const updateBooking = (updates) => {
@@ -46,12 +48,11 @@ export const BookingProvider = ({ children }) => {
         updatedCart = [...prev.cartItems, itemWithQuantity];
       }
 
-    return { ...prev, cartItems: updatedCart };
-  });
-};
+      return { ...prev, cartItems: updatedCart };
+    });
+  };
 
-
-  // Remove item from cart
+  /** ✅ Remove item from cart */
   const removeFromCart = (itemId) => {
     setBooking((prev) => ({
       ...prev,
@@ -95,7 +96,6 @@ export const BookingProvider = ({ children }) => {
         resetBooking,
         isBookingComplete,
         allVisited,
-        colors, // 🎨 expose theme colors
       }}
     >
       {children}

@@ -4,6 +4,7 @@ import moment from 'moment';
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert, // ✅ FIX: Add Alert here
   Dimensions,
   KeyboardAvoidingView,
   Platform,
@@ -213,17 +214,17 @@ const EventInfoScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
-        <LinearGradient colors={['#white', '#7B1FA2']} style={styles.gradientHeader}>
-          <StepIndicator
-            customStyles={customStyles}
-            currentPosition={0}
-            labels={labels}
-            stepCount={labels.length}
-            renderStepIndicator={renderStepIndicator}
-          />
-        </LinearGradient>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
+          <LinearGradient colors={['#white', '#7B1FA2']} style={styles.gradientHeader}>
+            <StepIndicator
+              customStyles={customStyles}
+              currentPosition={0}
+              labels={labels}
+              stepCount={labels.length}
+              renderStepIndicator={renderStepIndicator}
+            />
+          </LinearGradient>
 
           <View style={styles.contentCard}>
             <Text style={styles.title}>Event Details</Text>
@@ -312,12 +313,12 @@ const EventInfoScreen = ({ navigation, route }) => {
               editable={!isLoading}
             />
 
-          <TouchableOpacity style={styles.nextButton} onPress={handleNext} disabled={isLoading}>
-            {isLoading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.nextButtonText}>Proceed</Text>}
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            <TouchableOpacity style={styles.nextButton} onPress={handleNext} disabled={isLoading}>
+              {isLoading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.nextButtonText}>Proceed</Text>}
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 };
@@ -327,8 +328,8 @@ export default EventInfoScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    
-   
+
+
   },
   gradientHeader: {
     height: height * 0.2,
@@ -431,4 +432,3 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
 });
-
