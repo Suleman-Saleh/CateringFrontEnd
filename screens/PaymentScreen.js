@@ -25,29 +25,30 @@ const STRAPI_URL = 'http://localhost:1337';
 const labels = ['Event Info', 'Services', 'Summary', 'Payment'];
 const icons = ['calendar', 'paint-brush', 'list-alt', 'credit-card'];
 
+// Updated Step Indicator styles to match the new blue theme
 const customStyles = {
   stepIndicatorSize: 30,
   currentStepIndicatorSize: 40,
   separatorStrokeWidth: 2,
   currentStepStrokeWidth: 5,
-  stepStrokeCurrentColor: '#8852a9ff',
+  stepStrokeCurrentColor: '#4A90E2',
   stepStrokeWidth: 5,
-  stepStrokeFinishedColor: 'white',
-  stepStrokeUnFinishedColor: 'grey',
-  separatorFinishedColor: 'white',
-  separatorUnFinishedColor: '#D1C4E9',
-  stepIndicatorFinishedColor: '#6A1B9A',
+  stepStrokeFinishedColor: '#4A90E2',
+  stepStrokeUnFinishedColor: '#B0C4DE',
+  separatorFinishedColor: '#4A90E2',
+  separatorUnFinishedColor: '#B0C4DE',
+  stepIndicatorFinishedColor: '#4A90E2',
   stepIndicatorUnFinishedColor: '#FFFFFF',
   stepIndicatorCurrentColor: '#FFFFFF',
   stepIndicatorLabelFontSize: 13,
   currentStepIndicatorLabelFontSize: 13,
-  stepIndicatorLabelCurrentColor: '#6A1B9A',
+  stepIndicatorLabelCurrentColor: '#4A90E2',
   stepIndicatorLabelFinishedColor: '#FFFFFF',
-  stepIndicatorLabelUnFinishedColor: '#D1C4E9',
-  labelColor: 'grey',
+  stepIndicatorLabelUnFinishedColor: '#B0C4DE',
+  labelColor: '#666',
   labelSize: 14,
-  finishedStepLabelColor: 'white',
-  currentStepLabelColor: 'white',
+  finishedStepLabelColor: '#2C3E50',
+  currentStepLabelColor: '#2C3E50',
 };
 
 const PaymentScreen = () => {
@@ -63,6 +64,7 @@ const PaymentScreen = () => {
   const [expiryDate, setExpiryDate] = useState('');
   const [cvv, setCvv] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(''); // State to handle and display error messages
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -72,7 +74,7 @@ const PaymentScreen = () => {
           style={styles.headerButton}
           activeOpacity={0.7}
         >
-          <Text style={[styles.headerButtonText, { color: '#007AFF' }]}>Back</Text>
+          <Text style={[styles.headerButtonText, { color: '#4A90E2' }]}>Back</Text>
         </TouchableOpacity>
       ),
       headerRight: () => (
@@ -106,100 +108,131 @@ const PaymentScreen = () => {
     if (!booking || !booking.cartItems) return 0;
     return booking.cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   };
-  
-const handlePayment = async () => {
-  console.log("--- Starting handlePayment function ---");
-  console.log("Received params:", { customerId, eventTypeId, locationId, guestCount, bookingDate, bookingAddress });
 
-  // ✅ Proper null/undefined check instead of falsy check
-  if (
-    customerId == null ||
-    eventTypeId == null ||
-    locationId == null ||
-    guestCount == null ||
-    bookingDate == null ||
-    !bookingAddress || bookingAddress.trim() === ""
-  ) {
-    Alert.alert("Error", "Missing booking details. Please go back and provide all required information.");
-    console.error("❌ Missing required booking details:", { customerId, eventTypeId, locationId, guestCount, bookingDate, bookingAddress });
-    return;
-  }
+  const handlePayment = async () => {
+    console.log("--- Starting handlePayment function ---");
+    console.log("Received params:", { customerId, eventTypeId, locationId, guestCount, bookingDate, bookingAddress });
 
-  setIsProcessing(true);
+    // Clear any previous error messages
+    setErrorMessage('');
 
-  try {
-    const bookingPayload = {
-      GuestCount: parseInt(guestCount, 10),
-      BookingDate: new Date(bookingDate).toISOString(),
-      BookingLocationAddress: bookingAddress,
-      customer: parseInt(customerId, 10),
-      event_type: parseInt(eventTypeId, 10),
-      location: parseInt(locationId, 10),
-    };
-
-    console.log("Sending booking payload:", JSON.stringify({ data: bookingPayload }, null, 2));
-
-    // Step 1: Create Booking
-    const bookingResponse = await fetch(`${STRAPI_URL}/api/bookings`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ data: bookingPayload }),
-    });
-
-    const bookingResult = await bookingResponse.json();
-    console.log("Received booking response:", bookingResult);
-
-    if (!bookingResponse.ok) {
-      throw new Error(bookingResult?.error?.message || "Booking creation failed");
+    // ✅ Proper null/undefined check instead of falsy check
+    if (
+      customerId == null ||
+      eventTypeId == null ||
+      locationId == null ||
+      guestCount == null ||
+      bookingDate == null ||
+      !bookingAddress || bookingAddress.trim() === ""
+    ) {
+      // Replaced Alert with state-based error message
+      setErrorMessage("Missing booking details. Please go back and provide all required information.");
+      console.error("❌ Missing required booking details:", { customerId, eventTypeId, locationId, guestCount, bookingDate, bookingAddress });
+      return;
     }
 
-    const newBookingId = bookingResult.data.id;
-    console.log("✅ Booking created successfully with ID:", newBookingId);
+    setIsProcessing(true);
 
-    // Step 2: Create Payment
-    const paymentPayload = {
-      PaymentStatus: "Paid",
-      Amount: calculateTotalAmount(),
-      PaymentDate: new Date().toISOString(),
-      booking: parseInt(newBookingId, 10),
-    };
+    try {
+      const bookingPayload = {
+        GuestCount: parseInt(guestCount, 10),
+        BookingDate: new Date(bookingDate).toISOString(),
+        BookingLocationAddress: bookingAddress,
+        customer: parseInt(customerId, 10),
+        event_type: parseInt(eventTypeId, 10),
+        location: parseInt(locationId, 10),
+      };
 
-    console.log("Sending payment payload:", JSON.stringify({ data: paymentPayload }, null, 2));
+      console.log("Sending booking payload:", JSON.stringify({ data: bookingPayload }, null, 2));
 
-    const paymentResponse = await fetch(`${STRAPI_URL}/api/payments`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ data: paymentPayload }),
-    });
+      // Step 1: Create Booking
+      const bookingResponse = await fetch(`${STRAPI_URL}/api/bookings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: bookingPayload }),
+      });
 
-    const paymentResult = await paymentResponse.json();
-    console.log("Received payment response:", paymentResult);
+      const bookingResult = await bookingResponse.json();
+      console.log("Received booking response:", bookingResult);
 
-    if (!paymentResponse.ok) {
-      throw new Error(paymentResult?.error?.message || "Payment creation failed");
+      if (!bookingResponse.ok) {
+        throw new Error(bookingResult?.error?.message || "Booking creation failed");
+      }
+
+      const newBookingId = bookingResult.data.id;
+      console.log("✅ Booking created successfully with ID:", newBookingId);
+
+      // Step 2: Create Payment
+      const paymentPayload = {
+        PaymentStatus: "Paid",
+        Amount: calculateTotalAmount(),
+        PaymentDate: new Date().toISOString(),
+        booking: parseInt(newBookingId, 10),
+      };
+
+      console.log("Sending payment payload:", JSON.stringify({ data: paymentPayload }, null, 2));
+
+      const paymentResponse = await fetch(`${STRAPI_URL}/api/payments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: paymentPayload }),
+      });
+
+      const paymentResult = await paymentResponse.json();
+      console.log("Received payment response:", paymentResult);
+
+      if (!paymentResponse.ok) {
+        throw new Error(paymentResult?.error?.message || "Payment creation failed");
+      }
+
+      console.log("✅ Payment created successfully:", paymentResult.data.id);
+      Alert.alert("Success", "Booking and payment processed successfully!");
+      resetBooking?.(); // Clear booking context
+      navigation.navigate("SummaryScreen", {
+        bookingId: newBookingId,
+        date: bookingDate,
+        guestCount: guestCount,
+        address: bookingAddress,
+        services: booking?.services || [], // if you have services array
+        totalPaid: calculateTotalAmount(),
+        paymentMethod: "Credit Card", // or dynamic
+      });
+    } catch (error) {
+      console.error("❌ handlePayment error:", error.message);
+      setErrorMessage(error.message || "An unexpected error occurred. Please try again.");
+    } finally {
+      setIsProcessing(false);
+      console.log("--- Finished handlePayment function ---");
     }
+  };
 
-    console.log("✅ Payment created successfully:", paymentResult.data.id);
-    Alert.alert("Success", "Booking and payment processed successfully!");
-    resetBooking?.(); // Clear booking context
-navigation.navigate("SummaryScreen", {
-  bookingId: newBookingId,
-  date: bookingDate,
-  guestCount: guestCount,
-  address: bookingAddress,
-  services: booking?.services || [], // if you have services array
-  totalPaid: calculateTotalAmount(),
-  paymentMethod: "Credit Card", // or dynamic
-});  } catch (error) {
-    console.error("❌ handlePayment error:", error.message);
-    Alert.alert("Payment Failed", error.message || "An unexpected error occurred. Please try again.");
-  } finally {
-    setIsProcessing(false);
-    console.log("--- Finished handlePayment function ---");
-  }
-};
+  const renderStepIndicator = ({ position, stepStatus }) => {
+    const iconName = icons[position];
+    const color =
+      stepStatus === 'current' ? '#4A90E2' :
+        stepStatus === 'finished' ? '#fff' :
+          '#B0C4DE';
+    const bgColor =
+      stepStatus === 'current' ? '#fff' :
+        stepStatus === 'finished' ? '#4A90E2' :
+          '#fff';
 
-
+    return (
+      <View
+        key={position}
+        style={{
+          backgroundColor: bgColor,
+          width: 30,
+          height: 30,
+          borderRadius: 15,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <Icon name={iconName} size={16} color={color} />
+      </View>
+    );
+  };
 
 
   return (
@@ -213,37 +246,18 @@ navigation.navigate("SummaryScreen", {
           currentPosition={3}
           labels={labels}
           stepCount={4}
-          renderStepIndicator={({ position, stepStatus }) => {
-            const iconName = icons[position];
-            const color =
-              stepStatus === 'current' ? '#6A1B9A' :
-              stepStatus === 'finished' ? '#fff' :
-              '#D1C4E9';
-            const bgColor =
-              stepStatus === 'current' ? '#fff' :
-              stepStatus === 'finished' ? '#6A1B9A' :
-              '#fff';
-
-            return (
-              <View
-                key={position}
-                style={{
-                  backgroundColor: bgColor,
-                  width: 30,
-                  height: 30,
-                  borderRadius: 15,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-              >
-                <Icon name={iconName} size={16} color={color} />
-              </View>
-            );
-          }}
+          renderStepIndicator={renderStepIndicator}
         />
 
         <View style={styles.container}>
           <Text style={styles.title}>Payment Details</Text>
+
+          {/* Conditionally display the error message if it exists */}
+          {errorMessage ? (
+            <View style={styles.errorBox}>
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            </View>
+          ) : null}
 
           <Text style={styles.label}>Card Number</Text>
           <TextInput
@@ -339,7 +353,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 5 },
     elevation: 5,
   },
-  title: { fontSize: 24, fontWeight: '700', marginBottom: 24, textAlign: 'center', color: '#222' },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 24,
+    textAlign: 'center',
+    color: '#2C3E50',
+  },
   label: { fontSize: 16, marginBottom: 8, color: '#444', fontWeight: '600' },
   input: {
     borderWidth: 1,
@@ -355,11 +375,11 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between' },
   halfInput: { flex: 0.48 },
   payButton: {
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#4A90E2',
     paddingVertical: 16,
     borderRadius: 10,
     marginTop: 20,
-    shadowColor: '#6A1B9A',
+    shadowColor: '#4A90E2',
     shadowOpacity: 0.4,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
@@ -371,11 +391,21 @@ const styles = StyleSheet.create({
   logoutButtonHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#4A90E2',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
     marginRight: 10,
   },
   logoutButtonText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  errorBox: {
+    backgroundColor: '#FFEBEE',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 15,
+  },
+  errorText: {
+    color: '#E53935',
+    textAlign: 'center',
+  },
 });

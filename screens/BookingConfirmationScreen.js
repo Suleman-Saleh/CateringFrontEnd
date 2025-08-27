@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -15,48 +15,50 @@ import { useBooking } from './BookingContextScreen';
 const labels = ['Event Info', 'Services', 'Summary', 'Payment'];
 const icons = ['calendar', 'paint-brush', 'list-alt', 'credit-card'];
 
+// Updated Step Indicator styles to match login blue theme
 const customStyles = {
   stepIndicatorSize: 30,
   currentStepIndicatorSize: 40,
   separatorStrokeWidth: 2,
   currentStepStrokeWidth: 3,
-  stepStrokeCurrentColor: '#6A1B9A',
+  stepStrokeCurrentColor: '#4A90E2', // Updated to blue
   stepStrokeWidth: 3,
-  stepStrokeFinishedColor: '#6A1B9A',
-  stepStrokeUnFinishedColor: '#D1C4E9',
-  separatorFinishedColor: '#6A1B9A',
-  separatorUnFinishedColor: '#D1C4E9',
-  stepIndicatorFinishedColor: '#6A1B9A',
+  stepStrokeFinishedColor: '#4A90E2', // Updated to blue
+  stepStrokeUnFinishedColor: '#B0C4DE', // Updated to light blue
+  separatorFinishedColor: '#4A90E2', // Updated to blue
+  separatorUnFinishedColor: '#B0C4DE', // Updated to light blue
+  stepIndicatorFinishedColor: '#4A90E2', // Updated to blue
   stepIndicatorUnFinishedColor: '#FFFFFF',
   stepIndicatorCurrentColor: '#FFFFFF',
   stepIndicatorLabelFontSize: 13,
   currentStepIndicatorLabelFontSize: 13,
-  stepIndicatorLabelCurrentColor: '#6A1B9A',
+  stepIndicatorLabelCurrentColor: '#4A90E2', // Updated to blue
   stepIndicatorLabelFinishedColor: '#FFFFFF',
-  stepIndicatorLabelUnFinishedColor: '#D1C4E9',
-  labelColor: '#999999',
+  stepIndicatorLabelUnFinishedColor: '#B0C4DE', // Updated to light blue
+  labelColor: '#666',
   labelSize: 13,
-  currentStepLabelColor: '#6A1B9A',
+  currentStepLabelColor: '#2C3E50', // Updated to a dark blue
 };
 
 const BookingConfirmationScreen = () => {
   const { booking } = useBooking();
   const navigation = useNavigation();
+  const [errorMessage, setErrorMessage] = useState(''); // State to handle and display error messages
 
   const renderStepIndicator = ({ position, stepStatus }) => {
     const iconName = icons[position];
     const color =
       stepStatus === 'current'
-        ? '#6A1B9A'
+        ? '#4A90E2' // Updated to blue
         : stepStatus === 'finished'
-        ? '#fff'
-        : '#D1C4E9';
+          ? '#fff'
+          : '#B0C4DE'; // Updated to light blue
     const bgColor =
       stepStatus === 'current'
         ? '#fff'
         : stepStatus === 'finished'
-        ? '#6A1B9A'
-        : '#fff';
+          ? '#4A90E2' // Updated to blue
+          : '#fff';
 
     return (
       <View
@@ -79,75 +81,75 @@ const BookingConfirmationScreen = () => {
     return sum + (isNaN(price) ? 0 : price * item.quantity);
   }, 0);
 
-const handleProceedToPayment = () => {
-  console.log("--- Starting handlePayment function ---");
-  console.log("Booking object:", booking);
+  const handleProceedToPayment = () => {
+    console.log("--- Starting handlePayment function ---");
+    console.log("Booking object:", booking);
 
-  const {
-    customerId,
-    eventTypeId,
-    locationId,
-    guestCount,
-    eventDateTime,
-    locationName,
-    eventLocation
-  } = booking;
+    // Clear any previous error messages
+    setErrorMessage('');
 
-  // Handle booking location address
-  let bookingLocationAddress = "";
-  if (locationName) {
-    bookingLocationAddress = locationName;
-  } else if (eventLocation && typeof eventLocation === "object") {
-    bookingLocationAddress = `${eventLocation.latitude}, ${eventLocation.longitude}`;
-  }
-
-  console.log("Derived bookingLocationAddress:", bookingLocationAddress);
-  console.log("Type of bookingLocationAddress:", typeof bookingLocationAddress);
-
-  // Log individual checks
-  console.log("customerId valid?", customerId != null);
-  console.log("eventTypeId valid?", eventTypeId != null);
-  console.log("locationId valid?", locationId != null);
-  console.log("guestCount valid?", guestCount != null);
-  console.log("eventDateTime valid?", eventDateTime != null);
-  console.log("bookingLocationAddress valid?", bookingLocationAddress.trim() !== "");
-
-  // Proper null/undefined check
-  if (
-    customerId == null ||
-    eventTypeId == null ||
-    locationId == null ||
-    guestCount == null ||
-    eventDateTime == null ||
-    !bookingLocationAddress.trim()
-  ) {
-    Alert.alert(
-      'Missing Information',
-      'Some booking details are missing. Please go back and fill them out.'
-    );
-
-    console.error("❌ Missing required booking details:", {
+    const {
       customerId,
       eventTypeId,
       locationId,
       guestCount,
       eventDateTime,
-      bookingLocationAddress
+      locationName,
+      eventLocation
+    } = booking;
+
+    // Handle booking location address
+    let bookingLocationAddress = "";
+    if (locationName) {
+      bookingLocationAddress = locationName;
+    } else if (eventLocation && typeof eventLocation === "object") {
+      bookingLocationAddress = `${eventLocation.latitude}, ${eventLocation.longitude}`;
+    }
+
+    console.log("Derived bookingLocationAddress:", bookingLocationAddress);
+    console.log("Type of bookingLocationAddress:", typeof bookingLocationAddress);
+
+    // Log individual checks
+    console.log("customerId valid?", customerId != null);
+    console.log("eventTypeId valid?", eventTypeId != null);
+    console.log("locationId valid?", locationId != null);
+    console.log("guestCount valid?", guestCount != null);
+    console.log("eventDateTime valid?", eventDateTime != null);
+    console.log("bookingLocationAddress valid?", bookingLocationAddress.trim() !== "");
+
+    // Proper null/undefined check
+    if (
+      customerId == null ||
+      eventTypeId == null ||
+      locationId == null ||
+      guestCount == null ||
+      eventDateTime == null ||
+      !bookingLocationAddress.trim()
+    ) {
+      // FIX: Replaced Alert with state-based error message
+      setErrorMessage('Some booking details are missing. Please go back and fill them out.');
+      console.error("❌ Missing required booking details:", {
+        customerId,
+        eventTypeId,
+        locationId,
+        guestCount,
+        eventDateTime,
+        bookingLocationAddress
+      });
+      return;
+    }
+
+    console.log("--- All required fields present. Navigating to PaymentScreen ---");
+
+    navigation.navigate('PaymentScreen', {
+      customerId,
+      eventTypeId,
+      locationId,
+      guestCount,
+      bookingDate: eventDateTime,
+      bookingAddress: bookingLocationAddress,
     });
-    return;
-  }
-
-  console.log("--- All required fields present. Navigating to PaymentScreen ---");
-
-  navigation.navigate('PaymentScreen', {
-    customerId,
-    eventTypeId,
-    locationId,
-    guestCount,
-    bookingDate: eventDateTime,
-    bookingAddress: bookingLocationAddress,
-  });
-};
+  };
 
   const eventDate = booking.eventDateTime ? new Date(booking.eventDateTime) : null;
 
@@ -173,6 +175,13 @@ const handleProceedToPayment = () => {
       <Text style={styles.subtitle}>
         Please review all details before proceeding to payment
       </Text>
+
+      {/* Conditionally display the error message if it exists */}
+      {errorMessage ? (
+        <View style={styles.errorBox}>
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        </View>
+      ) : null}
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Event Details</Text>
@@ -224,6 +233,7 @@ const styles = StyleSheet.create({
     marginTop: 30,
     marginBottom: 8,
     textAlign: 'center',
+    color: '#2C3E50', // dark blue for title
   },
   subtitle: {
     fontSize: 14,
@@ -242,9 +252,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 16,
     marginBottom: 10,
+    color: '#2C3E50', // consistent dark blue
   },
   totalBox: {
-    backgroundColor: '#F3E5F5',
+    backgroundColor: '#EAF3FC', // Updated to light blue
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -256,11 +267,11 @@ const styles = StyleSheet.create({
   amount: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#6A1B9A',
+    color: '#4A90E2', // Updated to blue
   },
   button: {
     marginTop: 20,
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#4A90E2', // Updated to blue
     paddingVertical: 16,
     borderRadius: 10,
     alignItems: 'center',
@@ -270,5 +281,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: '700',
+  },
+  errorBox: {
+    backgroundColor: '#FFEBEE',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 15,
+  },
+  errorText: {
+    color: '#E53935',
+    textAlign: 'center',
   },
 });

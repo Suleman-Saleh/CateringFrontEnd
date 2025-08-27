@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     marginBottom: 6,
-    color: '#2c3e50',
+    color: '#2C3E50', // Updated to match the new color
     textAlign: 'center',
   },
   subtitle: {
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 8,
-    color: '#6A1B9A',
+    color: '#4A90E2', // Updated to new primary color
   },
   row: {
     fontSize: 16,
@@ -155,11 +155,11 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   homeButton: {
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#4A90E2', // Updated to new primary color
     paddingVertical: 14,
     borderRadius: 10,
     width: '100%',
-    shadowColor: '#6A1B9A',
+    shadowColor: '#4A90E2', // Updated to new primary color
     shadowOpacity: 0.4,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
